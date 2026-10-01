@@ -13,6 +13,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest"]
+aws = ["anthropic[bedrock]"]   # the live LLM call and DynamoDB; tests don't need it
 
 [tool.setuptools.packages.find]
 where = ["src"]

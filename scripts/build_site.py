@@ -93,7 +93,7 @@ def build(out: Path = ROOT / "_site", strict: bool = False, review: bool = False
     problems = image_problems(templates, ROOT / "templates" / "images")
     if problems and strict:
         raise SystemExit("Template images do not match the catalog:\n  " + "\n  ".join(problems))
-    entries = bank_entries(ROOT / "bank" / "memes.jsonl", {t["id"] for t in templates})
+    entries = bank_entries(ROOT / "seed" / "memes.jsonl", {t["id"] for t in templates})
     bad = bank_problems(entries, templates)
     if bad:
         raise SystemExit("Meme bank does not match the catalog:\n  " + "\n  ".join(bad))

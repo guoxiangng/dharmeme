@@ -1,6 +1,6 @@
 // Review page for the meme bank (SPEC.md §4). A static page can't write the bank file, so
 // it collects the ids you reject into a list to copy; the statuses are then updated in
-// bank/memes.jsonl.
+// seed/memes.jsonl.
 import { loadImage } from "./images.js";
 import { FONT_FAMILY, renderMeme } from "./render.js";
 

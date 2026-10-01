@@ -116,7 +116,7 @@ def test_real_bank_matches_catalog():
     import build_site
 
     templates = load_catalog()
-    entries = build_site.bank_entries(build_site.ROOT / "bank" / "memes.jsonl",
+    entries = build_site.bank_entries(build_site.ROOT / "seed" / "memes.jsonl",
                                       {t["id"] for t in templates})
     assert build_site.bank_problems(entries, templates) == []
 

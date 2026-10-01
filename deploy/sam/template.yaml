@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: dharmeme — meme pool + prompt API behind a Function URL (ap-southeast-1)
+
+Parameters:
+  AllowedOrigin:
+    Type: String
+    Default: https://guoxiangng.github.io
+    Description: The only web origin allowed to call the API from a browser.
+  BedrockModelId:
+    Type: String
+    Default: global.anthropic.claude-haiku-4-5-20251001-v1:0
+    Description: Bedrock inference profile for the caption call.
+  LimitPerIp:
+    Type: Number
+    Default: 5
+    Description: Prompt memes one IP may request per day.
+  LimitPerDay:
+    Type: Number
+    Default: 200
+    Description: Prompt memes served per day in total. This is the ceiling on LLM cost.
+
+Resources:
+  # One table for the meme pool (pk "meme") and the usage counters (pk "usage").
+  Table:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+      TimeToLiveSpecification:
+        AttributeName: expires      # usage counters delete themselves
+        Enabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true   # the pool's only backup
+
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../build/            # assembled by scripts/build_lambda.py
+      Handler: handler.handler
+      Runtime: python3.13
+      Architectures: [x86_64]
+      Timeout: 30
+      MemorySize: 512
+      ReservedConcurrentExecutions: 5   # a traffic spike can't fan out
+      Environment:
+        Variables:
+          DHARMEME_TABLE: !Ref Table
+          DHARMEME_LIMIT_PER_IP: !Ref LimitPerIp
+          DHARMEME_LIMIT_PER_DAY: !Ref LimitPerDay
+          LLM_PROVIDER: bedrock
+          BEDROCK_MODEL_ID: !Ref BedrockModelId
+      FunctionUrlConfig:
+        AuthType: NONE              # public; the usage limits are the guard
+        Cors:
+          AllowOrigins: [!Ref AllowedOrigin]
+          AllowMethods: [GET, POST]
+          AllowHeaders: [content-type]
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref Table }
+        - Statement:
+            - Effect: Allow
+              Action: bedrock:InvokeModel
+              Resource:
+                # Global inference profiles route to any region, hence the wildcards.
+                - !Sub "arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/global.anthropic.claude-*"
+                - "arn:aws:bedrock:*::foundation-model/anthropic.claude-*"
+                - "arn:aws:bedrock:::foundation-model/anthropic.claude-*"
+
+Outputs:
+  ApiUrl:
+    Description: Base URL of the API (GET /memes, POST /meme). Set as API_BASE in web/app.js.
+    Value: !GetAtt ApiFunctionUrl.FunctionUrl
+  TableName:
+    Value: !Ref Table
