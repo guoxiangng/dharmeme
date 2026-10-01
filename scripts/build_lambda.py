@@ -2,8 +2,8 @@
 
     python scripts/build_lambda.py     # then: sam deploy, from deploy/sam/
 
-The zip holds the handler, the dharmeme package, catalog.json, the seed memes and the
-dependencies as Linux wheels. The catalog ships as JSON, so the Lambda needs no PyYAML.
+The zip holds the handler, the dharmeme package, catalog.json, the seed memes, the
+template images, the font and the dependencies as Linux wheels. The catalog ships as JSON, so the Lambda needs no PyYAML.
 It is assembled in a temp folder: building in place under a synced folder (OneDrive)
 can leave the dependency folders empty.
 """
@@ -22,9 +22,9 @@ from dharmeme.catalog import load_catalog  # noqa: E402
 
 ZIP = ROOT / "deploy" / "build" / "dharmeme.zip"
 PYTHON_VERSION = "3.13"  # must match Runtime in deploy/sam/template.yaml
-# boto3 is already in the Lambda runtime, so only the Anthropic SDK is bundled.
-DEPENDENCIES = ["anthropic"]
-CATALOG_FIELDS = ["id", "name", "format", "slots"]
+# boto3 is already in the Lambda runtime. Pillow draws the memes for Telegram.
+DEPENDENCIES = ["anthropic", "Pillow"]
+CATALOG_FIELDS = ["id", "name", "image", "format", "slots"]
 
 
 def assemble(out: Path, install: bool = True) -> None:
@@ -32,6 +32,9 @@ def assemble(out: Path, install: bool = True) -> None:
                     ignore=shutil.ignore_patterns("__pycache__", "catalog.py"))
     shutil.copy2(ROOT / "deploy" / "lambda" / "handler.py", out / "handler.py")
     shutil.copy2(ROOT / "seed" / "memes.jsonl", out / "seed.jsonl")
+    shutil.copytree(ROOT / "templates" / "images", out / "images",
+                    ignore=shutil.ignore_patterns(".*"))
+    shutil.copy2(ROOT / "templates" / "fonts" / "Anton-Regular.ttf", out / "Anton-Regular.ttf")
     catalog = [{k: t[k] for k in CATALOG_FIELDS} for t in load_catalog()]
     (out / "catalog.json").write_text(json.dumps(catalog), encoding="utf-8")
     if install:

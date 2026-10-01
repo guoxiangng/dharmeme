@@ -11,10 +11,16 @@ Parameters:
     Type: String
     Default: global.anthropic.claude-haiku-4-5-20251001-v1:0
     Description: Bedrock inference profile for the caption call.
+  TelegramTokenParameter:
+    Type: String
+    Default: /dharmeme/telegram-token
+    Description: >-
+      SSM Parameter Store name (SecureString) holding the Telegram bot token. The bot is
+      off until the parameter exists; it is created by hand, never by this template.
   LimitPerIp:
     Type: Number
     Default: 5
-    Description: Prompt memes one IP may request per day.
+    Description: Prompt memes one IP (or one Telegram chat) may request per day.
   LimitPerDay:
     Type: Number
     Default: 200
@@ -55,6 +61,7 @@ Resources:
           DHARMEME_TABLE: !Ref Table
           DHARMEME_LIMIT_PER_IP: !Ref LimitPerIp
           DHARMEME_LIMIT_PER_DAY: !Ref LimitPerDay
+          DHARMEME_TELEGRAM_PARAM: !Ref TelegramTokenParameter
           LLM_PROVIDER: bedrock
           BEDROCK_MODEL_ID: !Ref BedrockModelId
       FunctionUrlConfig:
@@ -66,6 +73,9 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy: { TableName: !Ref Table }
         - Statement:
+            - Effect: Allow
+              Action: ssm:GetParameter
+              Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${TelegramTokenParameter}"
             - Effect: Allow
               Action: bedrock:InvokeModel
               Resource:

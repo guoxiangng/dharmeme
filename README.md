@@ -35,6 +35,26 @@ Live at https://guoxiangng.github.io/dharmeme/ with both features: Random, and a
 your topic. The API (Lambda + DynamoDB + Claude Haiku on Bedrock) is deployed with SAM.
 Next: the Telegram bot, then a scheduled generator that grows the pool. See SPEC.md §12.
 
+## Telegram bot
+
+The same Lambda answers a Telegram bot (`/random`, `/meme <topic>`, or just send a topic).
+It is off until a bot token exists. To switch it on:
+
+1. Create a bot with [@BotFather](https://t.me/BotFather) and copy its token.
+2. Store the token (it goes to SSM Parameter Store, encrypted, and nowhere else):
+
+   ```
+   aws ssm put-parameter --region ap-southeast-1 --name /dharmeme/telegram-token --type SecureString --value "<token>"
+   ```
+
+3. Point the bot at the API (the URL is the stack's `ApiUrl` output):
+
+   ```
+   aws lambda invoke --region ap-southeast-1 --function-name <ApiFunction name> --cli-binary-format raw-in-base64-out --payload "{\"admin\":\"set_telegram_webhook\",\"url\":\"<ApiUrl>\"}" out.json
+   ```
+
+Topic memes count against the same daily limits as the website, per chat.
+
 ## Try it locally
 
 ```

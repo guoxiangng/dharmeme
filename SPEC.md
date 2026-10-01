@@ -157,7 +157,12 @@ linked from the portfolio (`guoxiangng.github.io`, plus a `projects/dharmeme.htm
   fallback message with a random meme.
 - **Download** button for the PNG.
 
-Telegram is a later second front end over the same Lambda core (needs a Python renderer).
+**Telegram** is a second front end on the same Lambda (`POST /telegram`, the bot's webhook):
+`/random`, `/meme <topic>`, or a plain message as the topic. Telegram needs a real image, so
+`render.py` draws the meme with Pillow, by the same rules as `web/render.js`. Topic memes
+count against the §7 limits per chat. Updates are accepted only with the secret Telegram
+sends back (derived from the bot token). The token lives in SSM Parameter Store
+(`/dharmeme/telegram-token`); the bot is off until it exists.
 
 ## 9. Deploy
 
