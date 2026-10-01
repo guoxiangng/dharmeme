@@ -16,21 +16,27 @@
 
   <main>
     <section class="stage">
-      <canvas id="meme" aria-label="Meme preview"></canvas>
+      <canvas id="meme" aria-label="Meme"></canvas>
       <div class="actions">
-        <button id="download" type="button">Download</button>
-        <label class="debug"><input id="debug" type="checkbox"> Show text boxes</label>
+        <button id="random" type="button">Another one</button>
+        <button id="download" type="button" class="secondary">Download</button>
       </div>
+      <p id="status" class="status" role="status"></p>
     </section>
 
-    <section class="editor">
+    <details id="editor" class="editor">
+      <summary>Write your own</summary>
       <label for="template">Template</label>
       <select id="template"></select>
       <p id="format" class="format"></p>
       <div id="slots"></div>
-      <p id="status" class="status" role="status"></p>
-    </section>
+      <label class="debug"><input id="debug" type="checkbox"> Show text boxes</label>
+    </details>
   </main>
+
+  <footer>
+    <a href="https://guoxiangng.github.io/projects/dharmeme.html">About this project</a>
+  </footer>
 
   <script type="module" src="app.js"></script>
 </body>

@@ -55,6 +55,7 @@ The preview page (`?debug`) outlines each box for tuning.
 - Fitting is a pure function, `fitText(measure, text, box, style) -> {fontSize, lines}`, so it
   can be tested without a browser: wrap to the box width; if it still overflows, shrink the
   font down to a minimum size; at the minimum, truncate with "…". Text never leaves its box.
+  A word is kept whole (the font shrinks instead) and only split at the minimum size.
 - Throws for an unknown template or slot names that don't match the template.
 - The page offers the result as a PNG download (`canvas.toBlob`).
 
@@ -74,9 +75,12 @@ One JSON object per line, generated offline per template and hand-reviewed.
 - Random serves only `approved` entries, uniformly at random, entirely in the browser.
 - `scripts/generate_bank.py --template drake --count 20` appends `pending` entries
   (offline, LLM via §6).
-- `web/review.html`, opened locally, renders pending entries with the same renderer for
-  approve/reject and writes back the updated file.
-- The site build publishes only `approved` entries, as `memes.json`.
+- `review.html` on the site renders the bank with the same renderer. Tap a meme to reject
+  it; the page lists the rejected ids to copy, and the statuses are then updated in
+  `bank/memes.jsonl` (a static page can't write the file itself).
+- The site build fails if an entry's slots don't match its template or a text is empty or
+  over `max_chars`. It publishes `approved` entries as `memes.json`, and the whole bank
+  with statuses as `bank.json` for the review page.
 
 ## 5. Prompt feature — `POST /meme` → `write_meme(topic) -> {template_id, slots}`
 
@@ -166,7 +170,7 @@ src/dharmeme/   config.py catalog.py prompt.py limits.py api.py
                 llm/{base,factory,bedrock}.py
 templates/      catalog.yaml  images/
 bank/           memes.jsonl
-web/            index.html app.js render.js style.css review.html fonts/
+web/            index.html app.js review.html review.js images.js render.js style.css fonts/
 scripts/        fetch_templates.py generate_bank.py build_site.py smoke_llm.py
 deploy/         sam/template.yaml  lambda/handler.py
 .github/        workflows/pages.yml

@@ -31,7 +31,9 @@ The detailed contracts are in [SPEC.md](SPEC.md).
 
 ## Status
 
-Step 1 (catalog + browser renderer + preview page) is in. See SPEC.md §12.
+Live at https://guoxiangng.github.io/dharmeme/. The catalog, renderer, deploy pipeline and
+the Random page are in; the first meme bank is awaiting review at `/review.html`. The prompt
+feature is next. See SPEC.md §12.
 
 ## Try it locally
 

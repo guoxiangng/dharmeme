@@ -93,6 +93,34 @@ def test_site_build_publishes_only_approved_memes(tmp_path, monkeypatch):
     assert "status" not in memes[0]
 
 
+def test_bank_problems(tmp_path):
+    import build_site
+
+    templates = load_catalog(write(tmp_path, {"templates": [template()]}))
+    good = {"id": "d1", "template_id": "drake", "status": "pending",
+            "slots": {"rejected": "a", "preferred": "b"}}
+    assert build_site.bank_problems([good], templates) == []
+
+    bad = [
+        good,
+        dict(good),  # duplicate id
+        dict(good, id="d2", slots={"rejected": "a"}),  # missing slot
+        dict(good, id="d3", slots={"rejected": " ", "preferred": "x" * 61}),
+        dict(good, id="d4", status="maybe"),
+    ]
+    problems = build_site.bank_problems(bad, templates)
+    assert [p.split(":")[0] for p in problems] == ["d1", "d2", "d3", "d3", "d4"]
+
+
+def test_real_bank_matches_catalog():
+    import build_site
+
+    templates = load_catalog()
+    entries = build_site.bank_entries(build_site.ROOT / "bank" / "memes.jsonl",
+                                      {t["id"] for t in templates})
+    assert build_site.bank_problems(entries, templates) == []
+
+
 def png(width, height):
     return b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\rIHDR" + struct.pack(">II", width, height)
 

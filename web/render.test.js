@@ -35,6 +35,14 @@ test("a 500-char text shrinks to the minimum and is truncated with an ellipsis",
   assert.ok(fitsInside(fit, 200, 60));
 });
 
+test("the font shrinks to keep a long word whole instead of splitting it", () => {
+  // At the size the height allows (80), "attachment" is 400 wide; it must shrink to fit 200.
+  const fit = fitText(measure, "Letting go of attachment", 200, 400, { minSize: 12 });
+  assert.ok(fit.lines.includes("attachment"));
+  assert.equal(fit.fontSize, 40);
+  assert.ok(fitsInside(fit, 200, 400));
+});
+
 test("a word wider than the box is split instead of overflowing", () => {
   const lines = wrap(measure, "Mahāparinibbānasuttaaaaaaaaaaaaaaaa", 20, 100);
   assert.ok(lines.length > 1);

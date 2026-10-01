@@ -1,3 +1,4 @@
+import { loadImage } from "./images.js";
 import { FONT_FAMILY, renderMeme } from "./render.js";
 
 const $ = (id) => document.getElementById(id);
@@ -6,31 +7,12 @@ const select = $("template");
 const slotsBox = $("slots");
 const debugBox = $("debug");
 
-// Where template images are served from. Relative = next to this page; to move them to a
-// CDN, set an absolute URL here (the host must send CORS headers, or PNG export is blocked).
-const IMAGE_BASE = "images/";
-
 let templates = [];
-let current = null; // {template, image}
-const imageCache = new Map();
+let memes = []; // approved bank entries
+let queue = []; // shuffled memes still to show, so Random doesn't repeat until all are seen
+let current = null; // {template, image, name} — name is used for the download file
 
 debugBox.checked = new URLSearchParams(location.search).has("debug");
-
-function loadImage(template) {
-  if (!imageCache.has(template.id)) {
-    imageCache.set(
-      template.id,
-      new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = () => resolve(null); // not fetched yet: draw a placeholder
-        img.crossOrigin = "anonymous";
-        img.src = `${IMAGE_BASE}${template.image}`;
-      }),
-    );
-  }
-  return imageCache.get(template.id);
-}
 
 function slotValues() {
   const values = {};
@@ -41,12 +23,10 @@ function slotValues() {
 function draw() {
   if (!current) return;
   renderMeme(canvas, current.template, slotValues(), current.image, { debug: debugBox.checked });
-  $("status").textContent = current.image
-    ? ""
-    : "Template image not downloaded yet; showing a placeholder.";
 }
 
-function buildSlotInputs(template) {
+// `values` fills the slot inputs; without it each slot shows its own name as a placeholder.
+function buildSlotInputs(template, values) {
   slotsBox.replaceChildren();
   for (const slot of template.slots) {
     const label = document.createElement("label");
@@ -56,7 +36,7 @@ function buildSlotInputs(template) {
     ta.id = `slot-${slot.name}`;
     ta.name = slot.name;
     ta.rows = 2;
-    ta.value = slot.name.replaceAll("_", " ");
+    ta.value = values ? values[slot.name] : slot.name.replaceAll("_", " ");
     const counter = document.createElement("div");
     counter.className = "counter";
     const update = () => {
@@ -72,32 +52,61 @@ function buildSlotInputs(template) {
   }
 }
 
-async function selectTemplate(id) {
-  const template = templates.find((t) => t.id === id);
-  buildSlotInputs(template);
+async function show(template, values, name) {
+  select.value = template.id;
+  buildSlotInputs(template, values);
   $("format").textContent = template.format;
-  current = { template, image: await loadImage(template) };
+  current = { template, image: await loadImage(template), name };
   draw();
 }
+
+function shuffled(list) {
+  const a = [...list];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function showRandom() {
+  if (!queue.length) queue = shuffled(memes);
+  const meme = queue.pop();
+  return show(templates.find((t) => t.id === meme.template_id), meme.slots, meme.id);
+}
+
+$("random").addEventListener("click", showRandom);
 
 $("download").addEventListener("click", () => {
   canvas.toBlob((blob) => {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `dharmeme-${current.template.id}.png`;
+    a.download = `dharmeme-${current.name}.png`;
     a.click();
     URL.revokeObjectURL(a.href);
   }, "image/png");
 });
 
 debugBox.addEventListener("change", draw);
-select.addEventListener("change", () => selectTemplate(select.value));
+select.addEventListener("change", () => {
+  const template = templates.find((t) => t.id === select.value);
+  show(template, null, template.id);
+});
 
 async function main() {
   await document.fonts.load(`40px ${FONT_FAMILY}`);
-  templates = await (await fetch("catalog.json")).json();
+  [templates, memes] = await Promise.all(
+    ["catalog.json", "memes.json"].map(async (url) => (await fetch(url)).json()),
+  );
   for (const t of templates) select.add(new Option(t.name, t.id));
-  await selectTemplate(templates[0].id);
+  if (memes.length) {
+    await showRandom();
+  } else {
+    $("random").hidden = true;
+    $("editor").open = true;
+    $("status").textContent = "The meme bank is still being reviewed. Write your own below.";
+    await show(templates[0], null, templates[0].id);
+  }
 }
 
 main().catch((err) => {

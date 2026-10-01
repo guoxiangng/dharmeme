@@ -19,7 +19,8 @@ sys.path.insert(0, str(ROOT / "src"))
 from dharmeme.catalog import load_catalog  # noqa: E402
 from fetch_templates import image_size  # noqa: E402
 
-WEB_FILES = ["index.html", "app.js", "render.js", "style.css"]
+WEB_FILES = ["index.html", "app.js", "review.html", "review.js", "images.js", "render.js",
+             "style.css"]
 CATALOG_FIELDS = ["id", "name", "image", "size", "format", "tags", "slots"]
 
 
@@ -42,20 +43,49 @@ def image_problems(templates: list[dict], images: Path) -> list[str]:
     return problems
 
 
-def approved_memes(bank: Path, template_ids: set[str]) -> list[dict]:
+def bank_entries(bank: Path, template_ids: set[str]) -> list[dict]:
+    """Every entry in the bank, whatever its status."""
     if not bank.exists():
         return []
-    memes = []
+    entries = []
     for n, line in enumerate(bank.read_text(encoding="utf-8").splitlines(), 1):
         if not line.strip():
             continue
         entry = json.loads(line)
-        if entry.get("status") != "approved":
-            continue
         if entry["template_id"] not in template_ids:
             raise SystemExit(f"{bank}:{n}: unknown template {entry['template_id']!r}")
-        memes.append({k: entry[k] for k in ("id", "template_id", "slots")})
-    return memes
+        entries.append(entry)
+    return entries
+
+
+def approved_memes(bank: Path, template_ids: set[str]) -> list[dict]:
+    return [
+        {k: entry[k] for k in ("id", "template_id", "slots")}
+        for entry in bank_entries(bank, template_ids)
+        if entry.get("status") == "approved"
+    ]
+
+
+def bank_problems(entries: list[dict], templates: list[dict]) -> list[str]:
+    """Entries the renderer would reject or truncate: wrong slot names, empty or too-long text."""
+    slots = {t["id"]: {s["name"]: s["max_chars"] for s in t["slots"]} for t in templates}
+    problems, seen = [], set()
+    for e in entries:
+        if e["id"] in seen:
+            problems.append(f"{e['id']}: duplicate id")
+        seen.add(e["id"])
+        if e.get("status") not in ("pending", "approved", "rejected"):
+            problems.append(f"{e['id']}: status {e.get('status')!r}")
+        want = slots[e["template_id"]]
+        if sorted(e["slots"]) != sorted(want):
+            problems.append(f"{e['id']}: slots must be {sorted(want)}, got {sorted(e['slots'])}")
+            continue
+        for name, text in e["slots"].items():
+            if not text.strip():
+                problems.append(f"{e['id']}: {name} is empty")
+            elif len(text) > want[name]:
+                problems.append(f"{e['id']}: {name} is {len(text)} chars, max {want[name]}")
+    return problems
 
 
 def build(out: Path = ROOT / "_site", strict: bool = False) -> Path:
@@ -63,6 +93,10 @@ def build(out: Path = ROOT / "_site", strict: bool = False) -> Path:
     problems = image_problems(templates, ROOT / "templates" / "images")
     if problems and strict:
         raise SystemExit("Template images do not match the catalog:\n  " + "\n  ".join(problems))
+    entries = bank_entries(ROOT / "bank" / "memes.jsonl", {t["id"] for t in templates})
+    bad = bank_problems(entries, templates)
+    if bad:
+        raise SystemExit("Meme bank does not match the catalog:\n  " + "\n  ".join(bad))
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
@@ -77,10 +111,15 @@ def build(out: Path = ROOT / "_site", strict: bool = False) -> Path:
     catalog = [{k: t[k] for k in CATALOG_FIELDS if k in t} for t in templates]
     (out / "catalog.json").write_text(json.dumps(catalog, indent=1), encoding="utf-8")
 
-    memes = approved_memes(ROOT / "bank" / "memes.jsonl", {t["id"] for t in templates})
+    fields = ("id", "template_id", "slots")
+    memes = [{k: e[k] for k in fields} for e in entries if e["status"] == "approved"]
     (out / "memes.json").write_text(json.dumps(memes, ensure_ascii=False), encoding="utf-8")
+    # The whole bank, with statuses, for the review page.
+    review = [{k: e[k] for k in (*fields, "status")} for e in entries]
+    (out / "bank.json").write_text(json.dumps(review, ensure_ascii=False), encoding="utf-8")
 
-    print(f"Built {out}: {len(templates)} templates, {len(memes)} approved memes.")
+    print(f"Built {out}: {len(templates)} templates, {len(memes)} approved memes "
+          f"of {len(entries)} in the bank.")
     if problems:
         print(f"Image problems ({len(problems)}), see scripts/fetch_templates.py:")
         for p in problems:
@@ -92,4 +131,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--strict", action="store_true",
                         help="fail if a template image is missing or the wrong size")
-    build(strict=parser.parse_args().strict)
+    parser.add_argument("--out", type=Path, default=ROOT / "_site", help="output directory")
+    args = parser.parse_args()
+    build(out=args.out, strict=args.strict)

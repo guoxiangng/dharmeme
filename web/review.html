@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>dharmeme — review</title>
+  <link rel="preload" href="fonts/anton.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>dharmeme</h1>
+    <p class="tagline">Review the meme bank. Tap a meme to reject it; the rest are kept.</p>
+  </header>
+
+  <main class="review">
+    <div class="review-bar">
+      <label for="filter">Show</label>
+      <select id="filter">
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+        <option value="all">All</option>
+      </select>
+      <span id="count" class="status" role="status"></span>
+    </div>
+
+    <div id="grid" class="grid"></div>
+
+    <section class="editor">
+      <label for="rejected">Rejected ids — copy this list and send it back</label>
+      <textarea id="rejected" rows="3" readonly></textarea>
+      <div class="actions">
+        <button id="copy" type="button">Copy</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="review.js"></script>
+</body>
+</html>

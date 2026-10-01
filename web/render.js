@@ -34,12 +34,15 @@ export function wrap(measure, text, size, maxWidth) {
   return lines;
 }
 
-// Find the largest font size at which `text` fits in a width x height box.
+// Find the largest font size at which `text` fits in a width x height box with every word
+// whole: a word is only split across lines at minSize, when shrinking can't help any more.
 // Below minSize it stops shrinking and truncates the last visible line with "…".
 // Returns {fontSize, lines, lineHeight, truncated}.
 export function fitText(measure, text, width, height, { maxSize, minSize = 12 } = {}) {
   const max = Math.max(minSize, Math.floor(maxSize ?? height / LINE_HEIGHT));
+  const words = String(text).split(/\s+/).filter(Boolean);
   for (let size = max; size >= minSize; size--) {
+    if (size > minSize && words.some((word) => measure(word, size) > width)) continue;
     const lines = wrap(measure, text, size, width);
     if (lines.length * size * LINE_HEIGHT <= height) {
       return { fontSize: size, lines, lineHeight: size * LINE_HEIGHT, truncated: false };
