@@ -12,3 +12,7 @@ dist/
 # SAM / deploy build artifacts
 .aws-sam/
 deploy/**/samconfig.toml
+
+# Site build output
+_site/
+node_modules/

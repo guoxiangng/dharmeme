@@ -16,15 +16,30 @@ No images are AI-generated. Captions are drawn onto a fixed set of template imag
 
 ## Planned architecture
 
+The detailed contracts are in [SPEC.md](SPEC.md).
+
 - **Template catalog** — each template image has a description of what it shows, the joke
   format, and its text slots.
 - **Meme bank** — captions batch-generated offline per template, hand-reviewed, stored as
   complete pairs.
-- **Back end** — one AWS Lambda (SAM), Claude Haiku on Amazon Bedrock for the prompt feature.
-- **Limits** — per-user daily limit and a global daily cap in DynamoDB; when the cap is hit,
+- **Back end** — one AWS Lambda (SAM) behind a Function URL, Claude Haiku on Amazon Bedrock
+  for the prompt feature. Memes are drawn in the browser, so the backend only returns text.
+- **Limits** — per-IP daily limit and a global daily cap in DynamoDB; when the cap is hit,
   the prompt feature falls back to a random meme.
-- **Front end** — Telegram bot or a single static page (to be decided).
+- **Front end** — static web page on GitHub Pages (guoxiangng.github.io/dharmeme) for v1;
+  Telegram bot later.
 
 ## Status
 
-Just started. Nothing is built yet.
+Step 1 (catalog + browser renderer + preview page) is in. See SPEC.md §12.
+
+## Try it locally
+
+```
+pip install -e ".[dev]"
+python scripts/fetch_templates.py      # download the template images (once)
+python scripts/build_site.py
+python -m http.server -d _site 8000    # open http://localhost:8000/?debug
+```
+
+Tests: `pytest` and `cd web && node --test`.

@@ -1,0 +1,176 @@
+# dharmeme template catalog — see SPEC.md §2.
+#
+# `box` is [x, y, width, height] as FRACTIONS of the image (0–1), so it survives resizing.
+# `verified: false` means the boxes were placed from memory of the template and still need
+# checking against the real image: open the preview with ?debug to see them outlined.
+# `url` and `size` are imgflip's, from memory; scripts/fetch_templates.py reports mismatches.
+
+defaults:
+  style: {color: white, stroke: black, align: center, uppercase: true}
+
+templates:
+  - id: drake
+    name: Drake Hotline Bling
+    image: drake.jpg
+    url: https://i.imgflip.com/30b1gx.jpg
+    size: [1200, 1200]
+    verified: false
+    format: >-
+      Two panels. Top: something rejected with disgust. Bottom: the thing preferred
+      instead. The joke is in the contrast.
+    tags: [preference, choice, contrast]
+    style: {color: black, stroke: none, uppercase: false}
+    slots:
+      - {name: rejected, box: [0.52, 0.02, 0.46, 0.46], max_chars: 70}
+      - {name: preferred, box: [0.52, 0.52, 0.46, 0.46], max_chars: 70}
+
+  - id: distracted-boyfriend
+    name: Distracted Boyfriend
+    image: distracted-boyfriend.jpg
+    url: https://i.imgflip.com/1ur9b0.jpg
+    size: [1200, 800]
+    verified: false
+    format: >-
+      A man walking with his girlfriend turns to stare at another woman. Labels: the
+      tempting new thing, the person being tempted, and the thing they should stay
+      committed to (who glares at him).
+    tags: [temptation, attachment, craving, distraction]
+    slots:
+      - {name: temptation, box: [0.10, 0.55, 0.32, 0.20], max_chars: 30}
+      - {name: tempted, box: [0.46, 0.40, 0.24, 0.20], max_chars: 25}
+      - {name: commitment, box: [0.72, 0.50, 0.26, 0.20], max_chars: 30}
+
+  - id: two-buttons
+    name: Two Buttons
+    image: two-buttons.jpg
+    url: https://i.imgflip.com/1g8my4.jpg
+    size: [600, 908]
+    verified: false
+    format: >-
+      A sweating man can't choose between two buttons. Labels: the two options (often
+      both bad, or contradictory) and who is choosing.
+    tags: [dilemma, choice, anxiety]
+    slots:
+      - {name: option_a, box: [0.06, 0.08, 0.32, 0.14], max_chars: 35,
+         style: {color: black, stroke: none}}
+      - {name: option_b, box: [0.40, 0.04, 0.30, 0.14], max_chars: 35,
+         style: {color: black, stroke: none}}
+      - {name: chooser, box: [0.04, 0.82, 0.92, 0.16], max_chars: 40}
+
+  - id: expanding-brain
+    name: Expanding Brain
+    image: expanding-brain.jpg
+    url: https://i.imgflip.com/1jwhww.jpg
+    size: [857, 1202]
+    verified: false
+    format: >-
+      Four rows, each with a bigger, more glowing brain. Four ideas in increasing
+      "enlightenment"; the last is usually absurd or ironically profound.
+    tags: [enlightenment, escalation, levels, irony]
+    style: {color: black, stroke: none, uppercase: false}
+    slots:
+      - {name: level_1, box: [0.02, 0.01, 0.46, 0.23], max_chars: 60}
+      - {name: level_2, box: [0.02, 0.26, 0.46, 0.23], max_chars: 60}
+      - {name: level_3, box: [0.02, 0.51, 0.46, 0.23], max_chars: 60}
+      - {name: level_4, box: [0.02, 0.76, 0.46, 0.23], max_chars: 60}
+
+  - id: this-is-fine
+    name: This Is Fine
+    image: this-is-fine.jpg
+    url: https://i.imgflip.com/wxica.jpg
+    size: [580, 282]
+    verified: false
+    format: >-
+      A dog sits calmly with a coffee in a room on fire. Top: the chaos. Bottom: the
+      calm, accepting reaction.
+    tags: [equanimity, denial, chaos, acceptance]
+    slots:
+      - {name: top, box: [0.02, 0.01, 0.96, 0.25], max_chars: 50}
+      - {name: bottom, box: [0.02, 0.74, 0.96, 0.25], max_chars: 50}
+
+  - id: change-my-mind
+    name: Change My Mind
+    image: change-my-mind.jpg
+    url: https://i.imgflip.com/24y43o.jpg
+    size: [482, 361]
+    verified: false
+    format: >-
+      A man sits at a table with a sign stating a bold opinion, daring passers-by to
+      argue. The sign holds one confident, slightly provocative statement.
+    tags: [opinion, hot-take, confidence]
+    style: {color: black, stroke: none, uppercase: false}
+    slots:
+      - {name: statement, box: [0.30, 0.60, 0.58, 0.22], max_chars: 70}
+
+  - id: woman-yelling-at-cat
+    name: Woman Yelling at Cat
+    image: woman-yelling-at-cat.jpg
+    url: https://i.imgflip.com/345v97.jpg
+    size: [680, 438]
+    verified: false
+    format: >-
+      Left: a woman angrily yelling an accusation. Right: a cat at a dinner table,
+      unbothered, with a smug or confused reply.
+    tags: [argument, accusation, unbothered, ego]
+    slots:
+      - {name: yelling, box: [0.02, 0.01, 0.46, 0.28], max_chars: 50}
+      - {name: cat, box: [0.52, 0.01, 0.46, 0.28], max_chars: 50}
+
+  - id: left-exit-12
+    name: Left Exit 12 Off Ramp
+    image: left-exit-12.jpg
+    url: https://i.imgflip.com/22bdq6.jpg
+    size: [804, 767]
+    verified: false
+    format: >-
+      A car swerves dramatically off the highway onto an exit ramp. Labels: the sensible
+      straight road, the tempting exit, and the car (who swerves to the exit).
+    tags: [temptation, bad-choice, swerve, discipline]
+    slots:
+      - {name: straight, box: [0.18, 0.08, 0.28, 0.20], max_chars: 30}
+      - {name: exit, box: [0.50, 0.08, 0.30, 0.20], max_chars: 30}
+      - {name: car, box: [0.30, 0.70, 0.45, 0.20], max_chars: 30}
+
+  - id: is-this-a-pigeon
+    name: Is This a Pigeon?
+    image: is-this-a-pigeon.jpg
+    url: https://i.imgflip.com/1o00in.jpg
+    size: [1587, 1425]
+    verified: false
+    format: >-
+      An anime man gestures at a butterfly and misidentifies it. Labels: the man, the
+      butterfly (the thing), and the question at the bottom ("Is this ...?") naming the
+      wrong thing he thinks it is.
+    tags: [misunderstanding, wrong-view, delusion]
+    slots:
+      - {name: person, box: [0.52, 0.30, 0.44, 0.16], max_chars: 30}
+      - {name: thing, box: [0.04, 0.12, 0.38, 0.14], max_chars: 30}
+      - {name: question, box: [0.02, 0.80, 0.96, 0.18], max_chars: 45}
+
+  - id: waiting-skeleton
+    name: Waiting Skeleton
+    image: waiting-skeleton.jpg
+    url: https://i.imgflip.com/2fm6x.jpg
+    size: [298, 403]
+    verified: false
+    format: >-
+      A skeleton sits on a bench, having waited until death. Top: what someone is
+      waiting for. Bottom: optional punchline.
+    tags: [waiting, patience, impermanence, death]
+    slots:
+      - {name: top, box: [0.02, 0.01, 0.96, 0.22], max_chars: 45}
+      - {name: bottom, box: [0.02, 0.77, 0.96, 0.22], max_chars: 45}
+
+  - id: hide-the-pain-harold
+    name: Hide the Pain Harold
+    image: hide-the-pain-harold.jpg
+    url: https://i.imgflip.com/gk5el.jpg
+    size: [480, 601]
+    verified: false
+    format: >-
+      An older man smiles stiffly while clearly suffering inside. Top: the situation.
+      Bottom: the forced-calm reaction.
+    tags: [dukkha, suffering, forced-calm, coping]
+    slots:
+      - {name: top, box: [0.02, 0.01, 0.96, 0.22], max_chars: 45}
+      - {name: bottom, box: [0.02, 0.77, 0.96, 0.22], max_chars: 45}

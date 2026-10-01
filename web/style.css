@@ -1,0 +1,94 @@
+@font-face {
+  font-family: "Anton";
+  src: url("fonts/anton.woff2") format("woff2");
+  font-display: block;
+}
+
+:root {
+  --bg: #f6f1e7;
+  --panel: #fffaf0;
+  --ink: #2b2620;
+  --muted: #6f665a;
+  --accent: #b5651d;
+  --border: #e2d8c6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1a17;
+    --panel: #26231f;
+    --ink: #eee6d8;
+    --muted: #a99e8d;
+    --accent: #e0954f;
+    --border: #3a352e;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+header { text-align: center; padding: 2rem 1rem 1rem; }
+h1 { font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 3rem; margin: 0; letter-spacing: 0.02em; }
+.tagline { margin: 0.25rem 0 0; color: var(--muted); }
+
+main {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 1.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem 16px 3rem;
+}
+
+@media (max-width: 760px) {
+  main { grid-template-columns: 1fr; }
+}
+
+.stage, .editor {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+canvas { display: block; width: 100%; height: auto; border-radius: 6px; }
+
+.actions { display: flex; align-items: center; gap: 1rem; margin-top: 0.75rem; flex-wrap: wrap; }
+.debug { color: var(--muted); font-size: 0.9rem; }
+
+label { display: block; font-weight: 600; margin: 0.75rem 0 0.25rem; }
+.debug { display: inline-flex; gap: 0.4rem; font-weight: 400; margin: 0; }
+
+select, textarea {
+  width: 100%;
+  font: inherit;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+}
+textarea { resize: vertical; min-height: 2.6rem; }
+
+button {
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: 0;
+  border-radius: 8px;
+  padding: 0.55rem 1.1rem;
+  cursor: pointer;
+}
+button:hover { filter: brightness(1.08); }
+
+.format { color: var(--muted); font-size: 0.9rem; margin: 0.5rem 0 0; }
+.counter { color: var(--muted); font-size: 0.8rem; text-align: right; }
+.counter.over { color: #c0392b; }
+.status { color: var(--muted); font-size: 0.85rem; min-height: 1.2em; }
