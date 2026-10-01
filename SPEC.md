@@ -75,12 +75,11 @@ One JSON object per line, generated offline per template and hand-reviewed.
 - Random serves only `approved` entries, uniformly at random, entirely in the browser.
 - `scripts/generate_bank.py --template drake --count 20` appends `pending` entries
   (offline, LLM via §6).
-- `review.html` on the site renders the bank with the same renderer. Tap a meme to reject
-  it; the page lists the rejected ids to copy, and the statuses are then updated in
-  `bank/memes.jsonl` (a static page can't write the file itself).
+- `review.html` renders the bank with the same renderer. Tap a meme to reject it; the page
+  lists the rejected ids to copy, and the statuses are then updated in `bank/memes.jsonl`.
+  It is built only with `build_site.py --review`, for local use, and is never deployed.
 - The site build fails if an entry's slots don't match its template or a text is empty or
-  over `max_chars`. It publishes `approved` entries as `memes.json`, and the whole bank
-  with statuses as `bank.json` for the review page.
+  over `max_chars`. It publishes only `approved` entries, as `memes.json`.
 
 ## 5. Prompt feature — `POST /meme` → `write_meme(topic) -> {template_id, slots}`
 

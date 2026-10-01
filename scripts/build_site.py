@@ -19,8 +19,8 @@ sys.path.insert(0, str(ROOT / "src"))
 from dharmeme.catalog import load_catalog  # noqa: E402
 from fetch_templates import image_size  # noqa: E402
 
-WEB_FILES = ["index.html", "app.js", "review.html", "review.js", "images.js", "render.js",
-             "style.css"]
+WEB_FILES = ["index.html", "app.js", "images.js", "render.js", "style.css"]
+REVIEW_FILES = ["review.html", "review.js"]  # local only (--review), never deployed
 CATALOG_FIELDS = ["id", "name", "image", "size", "format", "tags", "slots"]
 
 
@@ -88,7 +88,7 @@ def bank_problems(entries: list[dict], templates: list[dict]) -> list[str]:
     return problems
 
 
-def build(out: Path = ROOT / "_site", strict: bool = False) -> Path:
+def build(out: Path = ROOT / "_site", strict: bool = False, review: bool = False) -> Path:
     templates = load_catalog()
     problems = image_problems(templates, ROOT / "templates" / "images")
     if problems and strict:
@@ -101,7 +101,7 @@ def build(out: Path = ROOT / "_site", strict: bool = False) -> Path:
         shutil.rmtree(out)
     out.mkdir(parents=True)
 
-    for name in WEB_FILES:
+    for name in WEB_FILES + (REVIEW_FILES if review else []):
         shutil.copy2(ROOT / "web" / name, out / name)
     shutil.copytree(ROOT / "web" / "fonts", out / "fonts")
     shutil.copytree(
@@ -114,9 +114,9 @@ def build(out: Path = ROOT / "_site", strict: bool = False) -> Path:
     fields = ("id", "template_id", "slots")
     memes = [{k: e[k] for k in fields} for e in entries if e["status"] == "approved"]
     (out / "memes.json").write_text(json.dumps(memes, ensure_ascii=False), encoding="utf-8")
-    # The whole bank, with statuses, for the review page.
-    review = [{k: e[k] for k in (*fields, "status")} for e in entries]
-    (out / "bank.json").write_text(json.dumps(review, ensure_ascii=False), encoding="utf-8")
+    if review:  # the whole bank, with statuses, for the review page
+        bank = [{k: e[k] for k in (*fields, "status")} for e in entries]
+        (out / "bank.json").write_text(json.dumps(bank, ensure_ascii=False), encoding="utf-8")
 
     print(f"Built {out}: {len(templates)} templates, {len(memes)} approved memes "
           f"of {len(entries)} in the bank.")
@@ -132,5 +132,7 @@ if __name__ == "__main__":
     parser.add_argument("--strict", action="store_true",
                         help="fail if a template image is missing or the wrong size")
     parser.add_argument("--out", type=Path, default=ROOT / "_site", help="output directory")
+    parser.add_argument("--review", action="store_true",
+                        help="also build the review page and the full bank (local use only)")
     args = parser.parse_args()
-    build(out=args.out, strict=args.strict)
+    build(out=args.out, strict=args.strict, review=args.review)
