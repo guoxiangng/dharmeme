@@ -1,0 +1,42 @@
+# Catalog maintenance, run by hand: downloads the template images listed in
+# templates/catalog.yaml and commits them to templates/images/. Run it after adding a
+# template to the catalog. It is not part of the deploy; the site build never downloads.
+name: fetch-templates
+
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Re-download images that are already present
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - id: fetch
+        continue-on-error: true
+        run: python scripts/fetch_templates.py ${{ inputs.force && '--force' || '' }}
+      - name: Commit new images
+        run: |
+          git config user.name "Ng Guo Xiang"
+          git config user.email "guoxiang231@gmail.com"
+          git add templates/images
+          if git diff --cached --quiet; then
+            echo "No new images."
+          else
+            git commit -m "Add template images"
+            git push
+          fi
+      - name: Fail if any download failed
+        if: steps.fetch.outcome == 'failure'
+        run: exit 1

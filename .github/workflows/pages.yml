@@ -1,0 +1,47 @@
+# Tests, builds and publishes the site to GitHub Pages at
+# https://guoxiangng.github.io/dharmeme/ (SPEC.md §9). Linked from the portfolio site
+# (guoxiangng.github.io) via its projects/dharmeme.html write-up.
+# The build makes no network calls: template images are committed under templates/images/
+# and --strict fails the build if one is missing or not the size the catalog expects.
+name: pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One concurrent deploy; don't cancel an in-progress one mid-publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: pip install -e ".[dev]"
+      - run: pytest
+      - run: node --test
+        working-directory: web
+      - run: python scripts/build_site.py --strict
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

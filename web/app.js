@@ -6,6 +6,10 @@ const select = $("template");
 const slotsBox = $("slots");
 const debugBox = $("debug");
 
+// Where template images are served from. Relative = next to this page; to move them to a
+// CDN, set an absolute URL here (the host must send CORS headers, or PNG export is blocked).
+const IMAGE_BASE = "images/";
+
 let templates = [];
 let current = null; // {template, image}
 const imageCache = new Map();
@@ -20,7 +24,8 @@ function loadImage(template) {
         const img = new Image();
         img.onload = () => resolve(img);
         img.onerror = () => resolve(null); // not fetched yet: draw a placeholder
-        img.src = `images/${template.image}`;
+        img.crossOrigin = "anonymous";
+        img.src = `${IMAGE_BASE}${template.image}`;
       }),
     );
   }

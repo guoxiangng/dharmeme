@@ -1,4 +1,5 @@
 import json
+import struct
 
 import pytest
 import yaml
@@ -90,6 +91,26 @@ def test_site_build_publishes_only_approved_memes(tmp_path, monkeypatch):
     memes = build_site.approved_memes(bank, {"drake"})
     assert [m["id"] for m in memes] == ["d1"]
     assert "status" not in memes[0]
+
+
+def png(width, height):
+    return b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\rIHDR" + struct.pack(">II", width, height)
+
+
+def test_image_problems_reports_missing_and_wrong_size(tmp_path):
+    import build_site
+
+    templates = [
+        template(id="ok", image="ok.png", size=[100, 50]),
+        template(id="gone", image="gone.png", size=[100, 50]),
+        template(id="resized", image="resized.png", size=[100, 50]),
+    ]
+    (tmp_path / "ok.png").write_bytes(png(100, 50))
+    (tmp_path / "resized.png").write_bytes(png(200, 100))
+    problems = build_site.image_problems(templates, tmp_path)
+    assert len(problems) == 2
+    assert "gone.png is missing" in problems[0]
+    assert "200x100" in problems[1]
 
 
 def test_site_build_rejects_unknown_template(tmp_path):
