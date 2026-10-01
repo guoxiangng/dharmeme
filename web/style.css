@@ -64,7 +64,12 @@ canvas { display: block; width: 100%; height: auto; border-radius: 6px; }
 label { display: block; font-weight: 600; margin: 0.75rem 0 0.25rem; }
 .debug { display: inline-flex; gap: 0.4rem; font-weight: 400; margin: 0; }
 
-select, textarea {
+.prompt { margin-top: 1rem; }
+.prompt-row { display: flex; gap: 0.5rem; }
+.prompt-row input { flex: 1; min-width: 0; }
+button:disabled { opacity: 0.6; cursor: wait; }
+
+select, textarea, input[type="text"] {
   width: 100%;
   font: inherit;
   color: var(--ink);

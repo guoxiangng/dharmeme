@@ -92,6 +92,14 @@ def test_invalid_reply_is_retried_once_then_falls_back():
     assert write_meme("x", llm, TEMPLATES) == GOOD
 
 
+def test_the_retry_tells_the_model_what_was_wrong():
+    too_long = {"template_id": "this-is-fine", "slots": {"chaos": "x" * 53}}
+    llm = StubLLM(too_long, {"template_id": "this-is-fine", "slots": {"chaos": "My inbox"}})
+    assert write_meme("my inbox", llm, TEMPLATES)["slots"] == {"chaos": "My inbox"}
+    assert llm.calls[0] == "my inbox"
+    assert "chaos is 53 chars, max 50" in llm.calls[1]
+
+
 def test_declined_and_refused_fall_back_without_a_retry():
     llm = StubLLM({"declined": True})
     assert write_meme("x", llm, TEMPLATES) == {"fallback": "declined"}

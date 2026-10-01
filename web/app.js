@@ -1,3 +1,4 @@
+import { API_BASE } from "./config.js";
 import { loadImage } from "./images.js";
 import { FONT_FAMILY, renderMeme } from "./render.js";
 
@@ -75,7 +76,54 @@ function showRandom() {
   return show(templates.find((t) => t.id === meme.template_id), meme.slots, meme.id);
 }
 
-$("random").addEventListener("click", showRandom);
+$("random").addEventListener("click", () => {
+  $("status").textContent = "";
+  showRandom();
+});
+
+// Ask the API for a meme on the visitor's topic. Whatever goes wrong (limit reached,
+// topic declined, API down), the visitor gets a short message and a random meme.
+$("prompt").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const topic = $("topic").value.trim();
+  if (!topic) return;
+  const button = $("make");
+  button.disabled = true;
+  $("status").textContent = "Contemplating…";
+  let reply;
+  try {
+    const response = await fetch(`${API_BASE}meme`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ topic }),
+    });
+    reply = await response.json();
+    if (!response.ok) throw new Error(reply.error || response.status);
+  } catch (err) {
+    console.error(err);
+    reply = { fallback: "error", message: "The mind wandered. Here is another one instead." };
+  }
+  button.disabled = false;
+  if (reply.fallback) {
+    $("status").textContent = reply.message;
+    if (memes.length) await showRandom();
+    return;
+  }
+  $("status").textContent = "";
+  await show(templates.find((t) => t.id === reply.template_id), reply.slots, "custom");
+});
+
+// The live pool comes from the API; the copy published with the site is the fallback.
+async function loadMemes() {
+  try {
+    const response = await fetch(`${API_BASE}memes`);
+    if (!response.ok) throw new Error(response.status);
+    return await response.json();
+  } catch (err) {
+    console.error("pool unavailable, using the bundled memes", err);
+    return (await fetch("memes.json")).json();
+  }
+}
 
 $("download").addEventListener("click", () => {
   canvas.toBlob((blob) => {
@@ -95,16 +143,17 @@ select.addEventListener("change", () => {
 
 async function main() {
   await document.fonts.load(`40px ${FONT_FAMILY}`);
-  [templates, memes] = await Promise.all(
-    ["catalog.json", "memes.json"].map(async (url) => (await fetch(url)).json()),
-  );
+  [templates, memes] = await Promise.all([
+    fetch("catalog.json").then((response) => response.json()),
+    loadMemes(),
+  ]);
   for (const t of templates) select.add(new Option(t.name, t.id));
   if (memes.length) {
     await showRandom();
   } else {
     $("random").hidden = true;
     $("editor").open = true;
-    $("status").textContent = "The meme bank is still being reviewed. Write your own below.";
+    $("status").textContent = "The meme pool is empty. Give it a topic, or write your own.";
     await show(templates[0], null, templates[0].id);
   }
 }

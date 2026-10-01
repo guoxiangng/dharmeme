@@ -1,6 +1,4 @@
-// Where template images are served from. Relative = next to this page; to move them to a
-// CDN, set an absolute URL here (the host must send CORS headers, or PNG export is blocked).
-const IMAGE_BASE = "images/";
+import { IMAGE_BASE } from "./config.js";
 
 const cache = new Map();
 

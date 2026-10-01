@@ -43,12 +43,12 @@ Resources:
   ApiFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ../build/            # assembled by scripts/build_lambda.py
+      CodeUri: ../build/dharmeme.zip   # built by scripts/build_lambda.py
       Handler: handler.handler
       Runtime: python3.13
       Architectures: [x86_64]
       Timeout: 30
-      MemorySize: 512
+      MemorySize: 1024              # more memory = more CPU; the SDK import is the slow part
       ReservedConcurrentExecutions: 5   # a traffic spike can't fan out
       Environment:
         Variables:

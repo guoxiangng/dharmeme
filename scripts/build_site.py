@@ -19,7 +19,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from dharmeme.catalog import load_catalog  # noqa: E402
 from fetch_templates import image_size  # noqa: E402
 
-WEB_FILES = ["index.html", "app.js", "images.js", "render.js", "style.css"]
+WEB_FILES = ["index.html", "app.js", "config.js", "images.js", "render.js", "style.css"]
 REVIEW_FILES = ["review.html", "review.js"]  # local only (--review), never deployed
 CATALOG_FIELDS = ["id", "name", "image", "size", "format", "tags", "slots"]
 

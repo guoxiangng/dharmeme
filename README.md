@@ -31,9 +31,9 @@ The detailed contracts are in [SPEC.md](SPEC.md).
 
 ## Status
 
-Live at https://guoxiangng.github.io/dharmeme/. The catalog, renderer, deploy pipeline and
-the Random page are in; the first meme bank is awaiting review at `/review.html`. The prompt
-feature is next. See SPEC.md §12.
+Live at https://guoxiangng.github.io/dharmeme/ with both features: Random, and a meme for
+your topic. The API (Lambda + DynamoDB + Claude Haiku on Bedrock) is deployed with SAM.
+Next: the Telegram bot, then a scheduled generator that grows the pool. See SPEC.md §12.
 
 ## Try it locally
 

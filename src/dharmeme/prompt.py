@@ -19,8 +19,9 @@ target a group of people. If the topic can't be done within these rules, decline
 
 OUTPUT = """\
 Pick the one template whose joke format fits the topic best, then write the text for
-every one of its slots. Keep each text within the slot's character limit; short is
-funnier. Write plain text only, no emoji or hashtags.
+every one of its slots. The character limits are hard limits and a longer text is
+rejected, so aim for about half the limit; short is funnier anyway. Write plain text
+only, no emoji or hashtags.
 
 Reply with JSON only, nothing before or after it:
 {"template_id": "<id>", "slots": {"<slot name>": "<text>", ...}}
@@ -72,9 +73,10 @@ def _parse(text: str):
 
 def write_meme(topic: str, llm, templates: list[dict]) -> dict:
     system = system_prompt(templates)
+    user = topic
     for _ in range(ATTEMPTS):
         try:
-            reply = llm.complete(system, topic)
+            reply = llm.complete(system, user)
         except Exception as exc:  # noqa: BLE001 — any provider failure is a fallback
             print(f"prompt: LLM call failed: {exc!r}")
             return {"fallback": "error"}
@@ -87,4 +89,7 @@ def write_meme(topic: str, llm, templates: list[dict]) -> dict:
             return validate(data, templates)
         except MemeError as exc:
             print(f"prompt: rejected reply: {exc}")
+            # Tell the model what was wrong, so the retry isn't the same mistake again.
+            user = (f"{topic}\n\nYour previous reply was rejected: {exc}.\n"
+                    f"Previous reply: {reply.text}\nSend a corrected reply.")
     return {"fallback": "error"}

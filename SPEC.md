@@ -61,9 +61,11 @@ The preview page (`?debug`) outlines each box for tuning.
 
 The backend never renders. A Python renderer is only needed later, for Telegram.
 
-## 4. Meme bank — `bank/memes.jsonl`
+## 4. Meme pool — DynamoDB, seeded from `seed/memes.jsonl`
 
-One JSON object per line, generated offline per template and hand-reviewed.
+The live pool is in the DynamoDB table (items with `pk = "meme"`); that is the source of
+truth. `seed/memes.jsonl` is loaded into the table once, when it is empty, and is not the
+live list: once the generator and the bot change the pool, the file is not updated.
 
 ```json
 {"id": "drake-0007", "template_id": "drake",
@@ -71,15 +73,16 @@ One JSON object per line, generated offline per template and hand-reviewed.
  "status": "approved", "created": "2026-10-01"}
 ```
 
-- `status`: `pending` (fresh from the generator), `approved`, `rejected`.
-- Random serves only `approved` entries, uniformly at random, entirely in the browser.
-- `scripts/generate_bank.py --template drake --count 20` appends `pending` entries
-  (offline, LLM via §6).
-- `review.html` renders the bank with the same renderer. Tap a meme to reject it; the page
-  lists the rejected ids to copy, and the statuses are then updated in `bank/memes.jsonl`.
-  It is built only with `build_site.py --review`, for local use, and is never deployed.
-- The site build fails if an entry's slots don't match its template or a text is empty or
-  over `max_chars`. It publishes only `approved` entries, as `memes.json`.
+- `status`: `pending`, `approved`, `rejected`.
+- `GET /memes` returns the `approved` entries. The page fetches them once on load and
+  picks at random in the browser, so Random makes no LLM call. If the API is down the
+  page uses `memes.json`, the approved seed entries published with the site.
+- The site build fails if a seed entry's slots don't match its template or a text is empty
+  or over `max_chars`.
+- `review.html` renders the seed for local review (`build_site.py --review`); it is never
+  deployed.
+- Later: a scheduled generator adds memes that pass an LLM tone check, and the Telegram
+  bot lets the owner remove one.
 
 ## 5. Prompt feature — `POST /meme` → `write_meme(topic) -> {template_id, slots}`
 
@@ -108,7 +111,7 @@ Validation: `template_id` exists, slot names exactly match, each text is non-emp
 | Outcome | Behaviour |
 |---|---|
 | Valid | return it; the page renders it |
-| Invalid JSON or failed validation | retry once; then `fallback: error` |
+| Invalid JSON or failed validation | retry once, telling the model what was wrong; then `fallback: error` |
 | `declined`, or the model refuses | `fallback: declined` (no fallback model — unlike hakigains, a refusal is not retried on a pricier model) |
 | Bedrock error / timeout | `fallback: error` |
 
@@ -123,11 +126,12 @@ The user never sees an error; the worst case is a random meme.
   (exact ID confirmed at build). `BEDROCK_EFFORT=""` (Haiku rejects the effort parameter).
 - `max_tokens` small (~400): the output is a few short strings.
 
-## 7. Limits — DynamoDB table `usage`
+## 7. Limits — counters in the same table (`pk = "usage"`)
 
-Applies to the prompt feature only; random never touches the backend.
+Applies to the prompt feature only; Random makes no LLM call. A request counts against
+the limits even if the LLM call then fails.
 
-| Counter | Key | Default limit |
+| Counter | Sort key | Default limit |
 |---|---|---|
 | Per IP per day | `ip#<source_ip>#<YYYY-MM-DD>` | 5 |
 | Global per day | `global#<YYYY-MM-DD>` | 200 |
@@ -146,7 +150,9 @@ Applies to the prompt feature only; random never touches the backend.
 Served by GitHub Pages from this (public) repo at `https://guoxiangng.github.io/dharmeme/`,
 linked from the portfolio (`guoxiangng.github.io`, plus a `projects/dharmeme.html` write-up).
 
-- **Random** button: picks from `memes.json`, renders. Works with the backend down.
+- **Random** button: picks from the pool fetched from `GET /memes` on load (§4), renders.
+  Works with the backend down, from the bundled `memes.json`.
+- The API's address is `API_BASE` in `web/config.js`.
 - **Prompt** box (max 200 chars): `POST` to the Function URL, renders the result or shows the
   fallback message with a random meme.
 - **Download** button for the PNG.
@@ -156,21 +162,25 @@ Telegram is a later second front end over the same Lambda core (needs a Python r
 ## 9. Deploy
 
 - **Site:** a GitHub Actions workflow builds `_site/` from `web/`, the template images, the
-  catalog (YAML → `catalog.json`) and the approved bank (→ `memes.json`), and deploys to Pages.
-- **API:** SAM in `deploy/sam/template.yaml`, region ap-southeast-1. One zip Lambda (Python
-  3.12, `anthropic[bedrock]` + `PyYAML`; no Pillow, no container), Function URL with
-  `AuthType: NONE` and CORS allowing only `https://guoxiangng.github.io`, `POST` only.
-  Resources: the function and the `usage` table. No secrets needed for v1.
+  catalog (YAML → `catalog.json`) and the approved seed (→ `memes.json`), and deploys to Pages.
+- **API:** SAM in `deploy/sam/template.yaml`, stack `dharmeme`, region ap-southeast-1.
+  `scripts/build_lambda.py` builds `deploy/build/dharmeme.zip` (the package, the Anthropic
+  SDK as Linux wheels, `catalog.json`, the seed), then `sam deploy` from `deploy/sam/`. One
+  zip Lambda (Python 3.13; no Pillow, no container), Function URL with `AuthType: NONE` and
+  CORS allowing only `https://guoxiangng.github.io`, `GET` and `POST`. Resources: the
+  function and one on-demand DynamoDB table (TTL on the counters, point-in-time recovery).
+  No secrets needed for v1.
 
 ## 10. Repo layout
 
 ```
-src/dharmeme/   config.py catalog.py prompt.py limits.py api.py
+src/dharmeme/   catalog.py prompt.py pool.py limits.py store.py api.py
                 llm/{base,factory,bedrock}.py
 templates/      catalog.yaml  images/
-bank/           memes.jsonl
-web/            index.html app.js review.html review.js images.js render.js style.css fonts/
-scripts/        fetch_templates.py generate_bank.py build_site.py smoke_llm.py
+seed/           memes.jsonl
+web/            index.html app.js config.js review.html review.js images.js render.js
+                style.css fonts/
+scripts/        fetch_templates.py build_site.py build_lambda.py smoke_llm.py
 deploy/         sam/template.yaml  lambda/handler.py
 .github/        workflows/pages.yml
 tests/          (pytest) + web/render.test.js (node --test)
