@@ -1,7 +1,7 @@
 """The meme pool — the live list of memes, kept in the store (SPEC.md §4).
 
-The pool in the store is the source of truth. seed/memes.jsonl in the repo is only
-loaded into an empty pool; after that it is never read again.
+The pool in the store is the source of truth. seed/memes.jsonl in the repo only
+supplies memes the pool has never seen; it never changes one that is already there.
 """
 PK = "meme"
 FIELDS = ("id", "template_id", "slots")
@@ -21,10 +21,14 @@ class Pool:
     def add(self, entry: dict) -> None:
         self.store.put({"pk": PK, "sk": entry["id"], **entry})
 
-    def seed_if_empty(self, entries: list[dict]) -> int:
-        """Load `entries` into an empty pool. Returns how many were loaded."""
-        if self.store.items(PK):
-            return 0
-        for entry in entries:
+    def add_missing(self, entries: list[dict]) -> int:
+        """Add the `entries` whose id the pool has never seen. Returns how many were added.
+
+        An entry already in the pool is left alone, whatever its status there, so the
+        seed can grow without ever undoing a change made to the live pool.
+        """
+        known = {item["sk"] for item in self.store.items(PK)}
+        new = [entry for entry in entries if entry["id"] not in known]
+        for entry in new:
             self.add(entry)
-        return len(entries)
+        return len(new)

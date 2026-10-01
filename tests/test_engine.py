@@ -173,8 +173,11 @@ def test_get_memes_returns_only_the_approved_pool():
         {"id": "a1", "status": "approved", "created": "2026-10-01", **GOOD},
         {"id": "a2", "status": "rejected", "created": "2026-10-01", **GOOD},
     ]
-    assert pool.seed_if_empty(seed) == 2
-    assert pool.seed_if_empty(seed) == 0  # only an empty pool is seeded
+    assert pool.add_missing(seed) == 2
+    # A seed entry the pool already has is left alone, even if the seed now disagrees.
+    newer = [dict(seed[0]), dict(seed[1], status="approved"),
+             {"id": "a3", "status": "pending", "created": "2026-10-02", **GOOD}]
+    assert pool.add_missing(newer) == 1
     response = api.handle(event(method="GET", path="/memes"))
     assert body(response) == [{"id": "a1", **GOOD}]
     assert "max-age" in response["headers"]["cache-control"]

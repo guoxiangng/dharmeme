@@ -2,7 +2,7 @@
 #
 # `box` is [x, y, width, height] as FRACTIONS of the image (0–1), so it survives resizing.
 # `verified: true` means the boxes were checked against the real image; add new templates
-# as `verified: false` and open the preview with ?debug to see the boxes outlined.
+# as `verified: true` and open the preview with ?debug to see the boxes outlined.
 # `url` is where scripts/fetch_templates.py downloads the image from; `size` is its pixel
 # size, which the site build checks (--strict) because the boxes depend on it.
 
@@ -176,3 +176,295 @@ templates:
     slots:
       - {name: top, box: [0.02, 0.01, 0.58, 0.22], max_chars: 45}
       - {name: bottom, box: [0.02, 0.77, 0.96, 0.22], max_chars: 45}
+
+  - id: panik-kalm-panik
+    name: Panik Kalm Panik
+    image: panik-kalm-panik.png
+    url: https://i.imgflip.com/3qqcim.png
+    size: [640, 881]
+    verified: true
+    format: >-
+      Three rows, each beside a face already labelled Panik, Kalm, Panik. A worrying
+      thing happens; a detail makes it seem fine; a further detail makes it much worse.
+    tags: [anxiety, relief, twist, escalation]
+    style: {color: black, stroke: none, uppercase: false}
+    slots:
+      - {name: panik_1, box: [0.02, 0.02, 0.44, 0.30], max_chars: 50}
+      - {name: kalm, box: [0.02, 0.36, 0.44, 0.30], max_chars: 50}
+      - {name: panik_2, box: [0.02, 0.69, 0.44, 0.29], max_chars: 50}
+
+  - id: bike-fall
+    name: Bike Fall
+    image: bike-fall.jpg
+    url: https://i.imgflip.com/1b42wl.jpg
+    size: [500, 680]
+    verified: true
+    format: >-
+      A cyclist pushes a stick into his own front wheel, crashes, and lies on the ground
+      blaming something else. Labels: who the cyclist is, the self-sabotaging thing they
+      do, and the outside thing they blame for the pain.
+    tags: [self-sabotage, blame, karma, suffering]
+    slots:
+      - {name: cyclist, box: [0.50, 0.09, 0.42, 0.16], max_chars: 25}
+      - {name: self_sabotage, box: [0.07, 0.50, 0.36, 0.15], max_chars: 35}
+      - {name: blame, box: [0.46, 0.71, 0.47, 0.12], max_chars: 35}
+
+  - id: evil-kermit
+    name: Evil Kermit
+    image: evil-kermit.jpg
+    url: https://i.imgflip.com/1e7ql7.jpg
+    size: [700, 325]
+    verified: true
+    format: >-
+      Kermit faces a hooded, dark version of himself. Top: "Me:" with a sensible
+      intention. Bottom: "Me to me:" with the inner voice urging the tempting opposite.
+    tags: [temptation, inner-voice, craving, mara]
+    slots:
+      - {name: me, box: [0.02, 0.02, 0.96, 0.22], max_chars: 45}
+      - {name: me_to_me, box: [0.02, 0.74, 0.96, 0.24], max_chars: 45}
+
+  - id: grus-plan
+    name: Gru's Plan
+    image: grus-plan.jpg
+    url: https://i.imgflip.com/26jxvz.jpg
+    size: [700, 449]
+    verified: true
+    format: >-
+      Gru presents a plan on four boards. Steps 1 and 2 are a sensible plan; step 3 is
+      the outcome that ruins it; step 4 repeats step 3 word for word as he realises.
+    tags: [plan, backfire, realisation]
+    style: {color: black, stroke: none, uppercase: false}
+    slots:
+      - {name: step_1, box: [0.285, 0.08, 0.19, 0.38], max_chars: 35}
+      - {name: step_2, box: [0.785, 0.08, 0.17, 0.38], max_chars: 35}
+      - {name: step_3, box: [0.285, 0.60, 0.19, 0.37], max_chars: 35}
+      - {name: step_4, box: [0.785, 0.60, 0.17, 0.37], max_chars: 35}
+
+  - id: clown-makeup
+    name: Clown Applying Makeup
+    image: clown-makeup.jpg
+    url: https://i.imgflip.com/38el31.jpg
+    size: [750, 798]
+    verified: true
+    format: >-
+      Four rows; in each the man puts on more clown makeup. Four statements, each a
+      further step of fooling himself, ending in the most deluded one.
+    tags: [delusion, self-deception, escalation, wrong-view]
+    style: {color: black, stroke: none, uppercase: false}
+    slots:
+      - {name: step_1, box: [0.02, 0.01, 0.48, 0.23], max_chars: 60}
+      - {name: step_2, box: [0.02, 0.26, 0.48, 0.23], max_chars: 60}
+      - {name: step_3, box: [0.02, 0.51, 0.48, 0.23], max_chars: 60}
+      - {name: step_4, box: [0.02, 0.76, 0.48, 0.23], max_chars: 60}
+
+  - id: same-picture
+    name: They're The Same Picture
+    image: same-picture.jpg
+    url: https://i.imgflip.com/2za3u1.jpg
+    size: [1363, 1524]
+    verified: true
+    format: >-
+      Two sheets of paper are held up, with the printed caption "Corporate needs you to
+      find the differences between this picture and this picture." A woman answers
+      "They're the same picture." Label the two sheets with two things that people insist
+      are different but are really the same.
+    tags: [sameness, non-duality, comparison]
+    style: {color: black, stroke: none, uppercase: false}
+    slots:
+      - {name: picture_a, box: [0.11, 0.07, 0.32, 0.19], max_chars: 30}
+      - {name: picture_b, box: [0.63, 0.14, 0.31, 0.19], max_chars: 30}
+
+  - id: tuxedo-pooh
+    name: Tuxedo Winnie the Pooh
+    image: tuxedo-pooh.png
+    url: https://i.imgflip.com/2ybua0.png
+    size: [800, 582]
+    verified: true
+    format: >-
+      Top: plain Pooh beside the ordinary way of saying something. Bottom: Pooh in a
+      tuxedo beside the same thing dressed up in refined or spiritual-sounding words.
+    tags: [euphemism, pretension, rephrasing]
+    style: {color: black, stroke: none, uppercase: false}
+    slots:
+      - {name: plain, box: [0.45, 0.03, 0.53, 0.44], max_chars: 60}
+      - {name: fancy, box: [0.45, 0.53, 0.53, 0.44], max_chars: 60}
+
+  - id: running-away-balloon
+    name: Running Away Balloon
+    image: running-away-balloon.jpg
+    url: https://i.imgflip.com/261o3j.jpg
+    size: [761, 1024]
+    verified: true
+    format: >-
+      A figure reaches for a yellow balloon drifting away; in the second panel a pink
+      blob holds the figure back. Labels: the figure, the goal that floats away, and the
+      thing holding them back.
+    tags: [obstacle, hindrance, craving, goal]
+    slots:
+      - {name: goal, box: [0.60, 0.11, 0.38, 0.17], max_chars: 25}
+      - {name: me, box: [0.02, 0.36, 0.38, 0.11], max_chars: 25}
+      - {name: held_back_by, box: [0.01, 0.73, 0.30, 0.15], max_chars: 25}
+
+  - id: epic-handshake
+    name: Epic Handshake
+    image: epic-handshake.jpg
+    url: https://i.imgflip.com/28j0te.jpg
+    size: [900, 645]
+    verified: true
+    format: >-
+      Two muscular arms clasp hands. Labels: two very different people or groups (one
+      per arm) and, on the clasped hands, the one thing they unexpectedly share.
+    tags: [agreement, common-ground, unity]
+    slots:
+      - {name: shared, box: [0.14, 0.02, 0.72, 0.17], max_chars: 35}
+      - {name: left, box: [0.02, 0.60, 0.36, 0.22], max_chars: 30}
+      - {name: right, box: [0.62, 0.52, 0.36, 0.22], max_chars: 30}
+
+  - id: uno-draw-25
+    name: UNO Draw 25 Cards
+    image: uno-draw-25.jpg
+    url: https://i.imgflip.com/3lmzyx.jpg
+    size: [500, 494]
+    verified: true
+    format: >-
+      An UNO card reads "<action> or draw 25"; beside it a player sits holding a huge
+      hand of cards, having refused. Labels: the simple action written on the card, and
+      who the stubborn player is.
+    tags: [stubbornness, avoidance, aversion]
+    slots:
+      - {name: action, box: [0.15, 0.31, 0.27, 0.21], max_chars: 35,
+         style: {color: black, stroke: none, uppercase: false}}
+      - {name: player, box: [0.52, 0.64, 0.46, 0.17], max_chars: 30}
+
+  - id: roll-safe
+    name: Roll Safe Think About It
+    image: roll-safe.jpg
+    url: https://i.imgflip.com/1h7in3.jpg
+    size: [702, 395]
+    verified: true
+    format: >-
+      A man taps his temple with a knowing smile. Top: "You can't <have a problem>".
+      Bottom: "if you <clever but flawed way to avoid it>".
+    tags: [loophole, bad-logic, cleverness]
+    slots:
+      - {name: top, box: [0.02, 0.02, 0.96, 0.24], max_chars: 45}
+      - {name: bottom, box: [0.02, 0.74, 0.96, 0.24], max_chars: 45}
+
+  - id: surprised-pikachu
+    name: Surprised Pikachu
+    image: surprised-pikachu.jpg
+    url: https://i.imgflip.com/2kbn1e.jpg
+    size: [1893, 1892]
+    verified: true
+    format: >-
+      Text above a shocked Pikachu. One short setup: someone does a thing with an
+      obvious consequence, the consequence happens, and they are shocked. Write it as
+      "Me: <does thing>. <Consequence happens>. Me:".
+    tags: [karma, cause-and-effect, shock]
+    style: {color: black, stroke: none, uppercase: false}
+    slots:
+      - {name: setup, box: [0.03, 0.02, 0.94, 0.31], max_chars: 100}
+
+  - id: monkey-puppet
+    name: Monkey Puppet
+    image: monkey-puppet.jpg
+    url: https://i.imgflip.com/2gnnjh.jpg
+    size: [923, 768]
+    verified: true
+    format: >-
+      Text above a puppet monkey that glances sideways, then looks away awkwardly. One
+      caption describing a moment of being quietly caught out or called out.
+    tags: [awkward, caught, guilt, monkey-mind]
+    style: {color: black, stroke: none, uppercase: false}
+    slots:
+      - {name: situation, box: [0.03, 0.03, 0.94, 0.30], max_chars: 90}
+
+  - id: always-has-been
+    name: Always Has Been
+    image: always-has-been.png
+    url: https://i.imgflip.com/46e43q.png
+    size: [960, 540]
+    verified: true
+    format: >-
+      An astronaut looks at Earth and realises something; a second astronaut behind
+      points a gun at him. Question: "Wait, it's all <thing>?". Answer: "Always has
+      been."
+    tags: [realisation, truth, emptiness]
+    slots:
+      - {name: question, box: [0.02, 0.01, 0.56, 0.16], max_chars: 40}
+      - {name: answer, box: [0.60, 0.01, 0.39, 0.16], max_chars: 25}
+
+  - id: anakin-padme
+    name: Anakin Padme 4 Panel
+    image: anakin-padme.png
+    url: https://i.imgflip.com/5c7lwq.png
+    size: [768, 768]
+    verified: true
+    format: >-
+      Four panels. Anakin states a plan. Padme, smiling, assumes the sensible part:
+      "<assumption>, right?". Anakin says nothing. Padme, worried, repeats it: "<the
+      same assumption>, right?".
+    tags: [assumption, doubt, silence]
+    slots:
+      - {name: anakin, box: [0.02, 0.36, 0.46, 0.13], max_chars: 45}
+      - {name: padme_1, box: [0.52, 0.36, 0.46, 0.13], max_chars: 45}
+      - {name: padme_2, box: [0.52, 0.86, 0.46, 0.13], max_chars: 45}
+
+  - id: buff-doge-cheems
+    name: Buff Doge vs. Cheems
+    image: buff-doge-cheems.png
+    url: https://i.imgflip.com/43a45p.png
+    size: [937, 720]
+    verified: true
+    format: >-
+      Left: a muscular dog, the strong version. Right: a small sad dog, the weak
+      version. Left text is what the strong one did or said; right text is the feeble
+      thing the weak one does or says. Usually then versus now.
+    tags: [then-vs-now, decline, comparison]
+    style: {color: black, stroke: none, uppercase: false}
+    slots:
+      - {name: strong, box: [0.02, 0.76, 0.46, 0.22], max_chars: 60}
+      - {name: weak, box: [0.52, 0.76, 0.46, 0.22], max_chars: 60}
+
+  - id: disaster-girl
+    name: Disaster Girl
+    image: disaster-girl.jpg
+    url: https://i.imgflip.com/23ls.jpg
+    size: [500, 375]
+    verified: true
+    format: >-
+      A little girl smirks at the camera while a house burns behind her. Top: what is
+      going up in flames. Bottom: her calm, satisfied remark.
+    tags: [letting-go, destruction, satisfaction]
+    slots:
+      - {name: top, box: [0.02, 0.02, 0.96, 0.22], max_chars: 45}
+      - {name: bottom, box: [0.02, 0.77, 0.58, 0.21], max_chars: 35}
+
+  - id: batman-slapping-robin
+    name: Batman Slapping Robin
+    image: batman-slapping-robin.jpg
+    url: https://i.imgflip.com/9ehk.jpg
+    size: [400, 387]
+    verified: true
+    format: >-
+      Robin starts to say something and Batman slaps him mid-sentence with a blunt
+      correction. Two speech bubbles: Robin's unfinished line, and Batman's retort.
+    tags: [correction, interruption, wrong-view]
+    style: {color: black, stroke: none, uppercase: false}
+    slots:
+      - {name: robin, box: [0.07, 0.03, 0.40, 0.17], max_chars: 45}
+      - {name: batman, box: [0.55, 0.02, 0.41, 0.17], max_chars: 45}
+
+  - id: one-does-not-simply
+    name: One Does Not Simply
+    image: one-does-not-simply.jpg
+    url: https://i.imgflip.com/1bij.jpg
+    size: [568, 335]
+    verified: true
+    format: >-
+      Boromir explaining gravely that something is far harder than it sounds. Top is
+      always "One does not simply". Bottom: the thing that sounds easy but is not.
+    tags: [difficulty, effort, understatement]
+    slots:
+      - {name: top, box: [0.02, 0.02, 0.96, 0.22], max_chars: 25}
+      - {name: bottom, box: [0.02, 0.76, 0.96, 0.22], max_chars: 45}

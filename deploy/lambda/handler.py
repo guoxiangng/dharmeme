@@ -21,9 +21,9 @@ def _api() -> Api:
     pool = Pool(store)
     seed = [json.loads(line) for line in
             (HERE / "seed.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
-    loaded = pool.seed_if_empty(seed)
-    if loaded:
-        print(f"Seeded the pool with {loaded} memes.")
+    added = pool.add_missing(seed)
+    if added:
+        print(f"Added {added} seed memes to the pool.")
     limits = Limits(
         store,
         per_ip=int(os.environ.get("DHARMEME_LIMIT_PER_IP", "5")),

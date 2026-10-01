@@ -40,6 +40,8 @@ async function render() {
   grid.replaceChildren(...(await Promise.all(shown.map(card))));
 }
 
+// review.html?show=approved opens on that filter.
+$("filter").value = new URLSearchParams(location.search).get("show") || "pending";
 $("filter").addEventListener("change", render);
 $("copy").addEventListener("click", () => navigator.clipboard.writeText($("rejected").value));
 
