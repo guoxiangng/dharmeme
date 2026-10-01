@@ -1,0 +1,14 @@
+.env
+.venv/
+.venv-sam/
+__pycache__/
+*.pyc
+
+# Python packaging
+*.egg-info/
+build/
+dist/
+
+# SAM / deploy build artifacts
+.aws-sam/
+deploy/**/samconfig.toml
