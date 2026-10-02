@@ -125,21 +125,18 @@ $("random").addEventListener("click", () => {
   showRandom();
 });
 
-// Ask the API for a meme on the visitor's topic. Whatever goes wrong (limit reached,
-// topic declined, API down), the visitor gets a short message and a random meme.
-$("prompt").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const topic = $("topic").value.trim();
-  if (!topic) return;
-  const button = $("make");
-  button.disabled = true;
-  $("status").textContent = "Contemplating…";
+// Ask the API for a fresh meme on one of the listed themes. Whatever goes wrong (limit
+// reached, API down), the visitor gets a short message and a random meme.
+async function makeForTheme(theme) {
+  const buttons = $("themes").querySelectorAll("button");
+  for (const b of buttons) b.disabled = true;
+  $("status").textContent = `${theme.label}: contemplating…`;
   let reply;
   try {
     const response = await fetch(`${API_BASE}meme`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ topic }),
+      body: JSON.stringify({ theme: theme.id }),
     });
     reply = await response.json();
     if (!response.ok) throw new Error(reply.error || response.status);
@@ -147,15 +144,27 @@ $("prompt").addEventListener("submit", async (event) => {
     console.error(err);
     reply = { fallback: "error", message: "The mind wandered. Here is another one instead." };
   }
-  button.disabled = false;
+  for (const b of buttons) b.disabled = false;
+  canvas.scrollIntoView({ behavior: "smooth", block: "nearest" });
   if (reply.fallback) {
     $("status").textContent = reply.message;
     if (memes.length) await showRandom();
     return;
   }
   $("status").textContent = "";
-  await show(templates.find((t) => t.id === reply.template_id), reply.slots, "custom");
-});
+  await show(templates.find((t) => t.id === reply.template_id), reply.slots, theme.id);
+}
+
+function buildThemeButtons(themes) {
+  for (const theme of themes) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "chip";
+    button.textContent = theme.label;
+    button.addEventListener("click", () => makeForTheme(theme));
+    $("themes").append(button);
+  }
+}
 
 // The live pool comes from the API; the copy published with the site is the fallback.
 async function loadMemes() {
@@ -187,17 +196,20 @@ select.addEventListener("change", () => {
 
 async function main() {
   await document.fonts.load(`40px ${FONT_FAMILY}`);
-  [templates, memes] = await Promise.all([
+  let themes;
+  [templates, themes, memes] = await Promise.all([
     fetch("catalog.json").then((response) => response.json()),
+    fetch("themes.json").then((response) => response.json()),
     loadMemes(),
   ]);
   for (const t of templates) select.add(new Option(t.name, t.id));
+  buildThemeButtons(themes);
   if (memes.length) {
     await showRandom();
   } else {
     $("random").hidden = true;
     $("editor").open = true;
-    $("status").textContent = "The meme pool is empty. Give it a topic, or write your own.";
+    $("status").textContent = "The meme pool is empty. Pick a theme, or write your own.";
     await show(templates[0], null, templates[0].id);
   }
 }

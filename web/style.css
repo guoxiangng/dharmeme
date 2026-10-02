@@ -64,11 +64,20 @@ canvas { display: block; width: 100%; height: auto; border-radius: 6px; }
 label { display: block; font-weight: 600; margin: 0.75rem 0 0.25rem; }
 .debug { display: inline-flex; gap: 0.4rem; font-weight: 400; margin: 0; }
 
-.prompt { margin-top: 1rem; }
-.prompt-row { display: flex; gap: 0.5rem; }
-.prompt-row input { flex: 1; min-width: 0; }
+.themes-title { font-size: 1rem; font-weight: 600; margin: 0.5rem 0 0.6rem; }
+.themes { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+button.chip {
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  font-weight: 500;
+  font-size: 0.92rem;
+}
+button.chip:hover { border-color: var(--accent); }
 button:disabled { opacity: 0.6; cursor: default; }
-#make:disabled { cursor: wait; }
+button.chip:disabled { cursor: wait; }
 
 .votes { display: inline-flex; align-items: center; gap: 0.5rem; margin-left: auto; }
 .votes button.secondary { padding: 0.45rem 0.7rem; }

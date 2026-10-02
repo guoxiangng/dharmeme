@@ -1,7 +1,7 @@
 """HTTP API behind the Lambda Function URL (SPEC.md §5).
 
     GET  /memes     -> the approved pool, for the page's Random button (no LLM)
-    POST /meme      -> {"topic": "..."} -> a meme for the topic, or a fallback
+    POST /meme      -> {"theme": "<id>"} -> a fresh meme on that theme, or a fallback
     POST /vote      -> {"id": "...", "vote": "up|down|report"} on a pool meme (no LLM)
     POST /telegram  -> a Telegram update (webhook), if a bot is configured
 
@@ -12,7 +12,8 @@ import hmac
 import json
 
 from .feedback import KINDS
-from .prompt import TOPIC_MAX, write_meme
+from .prompt import write_meme
+from .themes import as_topic
 
 MESSAGES = {
     "limit": "The meme well is empty. All things are impermanent — try tomorrow.",
@@ -43,7 +44,8 @@ def _fallback(reason: str) -> dict:
 
 class Api:
     def __init__(self, pool, limits, get_llm, templates: list[dict], get_bot=None,
-                 feedback=None) -> None:
+                 feedback=None, themes: list[dict] = ()) -> None:
+        self.themes = {t["id"]: t for t in themes}
         self.pool = pool
         self.limits = limits
         self.get_llm = get_llm  # called only for a prompt request, so /memes stays light
@@ -103,16 +105,16 @@ class Api:
         return _response(404 if result == "unknown" else 200, {"result": result})
 
     def meme(self, event: dict, ip: str) -> dict:
+        # The public picks a theme from the fixed list; nothing a visitor types reaches
+        # the model.
         try:
-            topic = json.loads(_body(event))["topic"]
+            theme = self.themes[json.loads(_body(event))["theme"]]
         except (ValueError, KeyError, TypeError):
-            return _response(400, {"error": 'send {"topic": "..."}'})
-        if not isinstance(topic, str) or not 1 <= len(topic.strip()) <= TOPIC_MAX:
-            return _response(400, {"error": f"topic must be 1 to {TOPIC_MAX} characters"})
+            return _response(400, {"error": 'send {"theme": "<id of a listed theme>"}'})
 
         if not self.limits.allow(ip):
             return _fallback("limit")
-        result = write_meme(topic.strip(), self.get_llm(), self.templates)
+        result = write_meme(as_topic(theme), self.get_llm(), self.templates)
         if "fallback" in result:
             return _fallback(result["fallback"])
         return _response(200, result)

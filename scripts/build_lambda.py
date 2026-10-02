@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from dharmeme.catalog import load_catalog  # noqa: E402
+from dharmeme.themes import load_themes  # noqa: E402
 
 ZIP = ROOT / "deploy" / "build" / "dharmeme.zip"
 PYTHON_VERSION = "3.13"  # must match Runtime in deploy/sam/template.yaml
@@ -37,6 +38,8 @@ def assemble(out: Path, install: bool = True) -> None:
     shutil.copy2(ROOT / "templates" / "fonts" / "Anton-Regular.ttf", out / "Anton-Regular.ttf")
     catalog = [{k: t[k] for k in CATALOG_FIELDS} for t in load_catalog()]
     (out / "catalog.json").write_text(json.dumps(catalog), encoding="utf-8")
+    (out / "themes.json").write_text(json.dumps(load_themes(), ensure_ascii=False),
+                                     encoding="utf-8")
     if install:
         subprocess.run(
             [sys.executable, "-m", "pip", "install", "--quiet",

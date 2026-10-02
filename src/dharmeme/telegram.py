@@ -1,10 +1,11 @@
 """Telegram front end over the same engine as the website (SPEC.md §8).
 
-    /random         a meme from the approved pool (no LLM)
-    /meme <topic>   a meme for the topic; plain text without a command means the same
+    /random   a meme from the approved pool (no LLM)
+    /meme     a list of themes to tap; the model writes a fresh meme on the one chosen
 
-The prompt feature counts against the same limits as the website, per chat instead of
-per IP. Telegram needs a real image, so memes are drawn here with render.py.
+The public picks a theme and never types a topic. Only the owner's chat may send free
+text as a topic. A fresh meme counts against the same limits as the website, per user
+instead of per IP. Telegram needs a real image, so memes are drawn here with render.py.
 """
 import hashlib
 import json
@@ -15,20 +16,22 @@ import uuid
 from .api import MESSAGES
 from .feedback import weight
 from .prompt import TOPIC_MAX, write_meme
+from .themes import as_topic
 
 HELP = (
     "dharmeme: Buddhist memes. All memes are impermanent.\n\n"
     "/random - a random meme\n"
-    "/meme <topic> - a meme about your topic\n\n"
-    "Or just send me a topic."
+    "/meme - pick a theme and get a fresh one"
 )
-# Callback data is a 3-character prefix followed by the meme id.
+PICK = "Pick a theme:"
+# Callback data is a 3-character prefix followed by a meme id or a theme id.
 APPROVE, REJECT = "ok:", "no:"  # the owner's buttons
 UP, DOWN, REPORT = "up:", "dn:", "rp:"  # everyone's buttons under a pool meme
 VOTES = {UP: "up", DOWN: "down", REPORT: "report"}
+THEME = "th:"  # a button in the theme list
 COMMANDS = [
     {"command": "random", "description": "A random meme"},
-    {"command": "meme", "description": "A meme about your topic"},
+    {"command": "meme", "description": "Pick a theme and get a fresh one"},
 ]
 
 
@@ -76,7 +79,9 @@ class TelegramApi:
 
 class Bot:
     def __init__(self, pool, limits, get_llm, templates: list[dict], renderer, telegram,
-                 owner_chat_id: int | None = None, feedback=None) -> None:
+                 owner_chat_id: int | None = None, feedback=None,
+                 themes: list[dict] = ()) -> None:
+        self.themes = {t["id"]: t for t in themes}
         self.pool = pool
         self.limits = limits
         self.get_llm = get_llm
@@ -106,8 +111,28 @@ class Bot:
         prefix, meme_id = data[:3], data[3:]
         if prefix in VOTES:
             self.handle_vote(query, VOTES[prefix], meme_id)
+        elif prefix == THEME:
+            self.handle_theme(query, meme_id)
         else:
             self.handle_decision(query, prefix, meme_id)
+
+    def send_theme_list(self, chat_id: int) -> None:
+        buttons = [{"text": t["label"], "callback_data": f"{THEME}{t['id']}"}
+                   for t in self.themes.values()]
+        rows = [buttons[i : i + 2] for i in range(0, len(buttons), 2)]
+        self.telegram.call("sendMessage", {"chat_id": chat_id, "text": PICK,
+                                           "reply_markup": {"inline_keyboard": rows}})
+
+    def handle_theme(self, query: dict, theme_id: str) -> None:
+        """A tap on a theme: write a fresh meme on it for the chat the list is in."""
+        chat_id = ((query.get("message") or {}).get("chat") or {}).get("id")
+        theme = self.themes.get(theme_id)
+        self.telegram.call("answerCallbackQuery", {
+            "callback_query_id": query["id"],
+            "text": f"{theme['label']}: contemplating…" if theme else "That theme is gone."})
+        if theme and chat_id is not None:
+            voter = f"tg-{(query.get('from') or {}).get('id')}"
+            self.send_fresh(chat_id, as_topic(theme), voter)
 
     def handle_vote(self, query: dict, kind: str, meme_id: str) -> None:
         """Thumbs up, thumbs down or Report, from anyone."""
@@ -155,12 +180,16 @@ class Bot:
             self.telegram.send_message(chat_id, f"This chat's id is {chat_id}")
         elif command == "/random":
             self.send_random(chat_id)
-        elif command == "/meme":
-            self.send_for_topic(chat_id, rest.strip())
-        elif command.startswith("/"):
+        elif command.startswith("/") and command != "/meme":
             self.telegram.send_message(chat_id, HELP)
         else:
-            self.send_for_topic(chat_id, text)
+            # Free text is a topic only in the owner's own chat; everyone else gets the
+            # theme list, so nothing a stranger types reaches the model.
+            topic = rest.strip() if command == "/meme" else text
+            if topic and chat_id == self.owner_chat_id and len(topic) <= TOPIC_MAX:
+                self.send_fresh(chat_id, topic, f"tg-{chat_id}")
+            else:
+                self.send_theme_list(chat_id)
 
     def send(self, chat_id: int, meme: dict, caption: str = "") -> None:
         photo = self.renderer.render(self.templates[meme["template_id"]], meme["slots"])
@@ -178,12 +207,9 @@ class Bot:
             return
         self.send(chat_id, random.choices(memes, [weight(m) for m in memes])[0], caption)
 
-    def send_for_topic(self, chat_id: int, topic: str) -> None:
-        if not 1 <= len(topic) <= TOPIC_MAX:
-            self.telegram.send_message(
-                chat_id, f"Send a topic of up to {TOPIC_MAX} characters, e.g. /meme my inbox")
-            return
-        if not self.limits.allow(f"tg-{chat_id}"):
+    def send_fresh(self, chat_id: int, topic: str, voter: str) -> None:
+        """Have the model write a meme on `topic` and send it, within `voter`'s limit."""
+        if not self.limits.allow(voter):
             self.send_random(chat_id, MESSAGES["limit"])
             return
         result = write_meme(topic, self.get_llm(), list(self.templates.values()))

@@ -1,0 +1,135 @@
+# Themes a visitor can ask for a meme about (SPEC.md §5). The public never types a topic:
+# they pick one of these. `label` is what the button says; `brief` is for the model only.
+#
+# The list spans the traditions: the early teachings shared by all schools, and Mahayana,
+# Chan/Zen and Pure Land practice. Jokes are always on the practitioner, never on the
+# teaching or on the Buddhas and bodhisattvas named here.
+
+themes:
+  # --- shared foundations ---
+  - id: impermanence
+    label: Impermanence
+    brief: >-
+      Anicca: everything changes and ends. The practitioner knows this in theory and is
+      still surprised or upset when a particular thing changes.
+  - id: dukkha
+    label: Dukkha
+    brief: >-
+      The unsatisfactoriness of ordinary life, from big sorrows to small daily
+      irritations, and how the practitioner makes it worse by resisting it.
+  - id: non-self
+    label: Non-self
+    brief: >-
+      Anatta: there is no fixed, separate self. The practitioner accepts this on the
+      cushion and defends their ego fiercely five minutes later.
+  - id: attachment
+    label: Attachment
+    brief: >-
+      Craving and clinging (tanha, upadana) to things, people, opinions, comfort or
+      one's phone, and the suffering that follows.
+  - id: letting-go
+    label: Letting go
+    brief: >-
+      Releasing what one clings to. Easy to say, and the practitioner picks the thing
+      straight back up.
+  - id: middle-way
+    label: The middle way
+    brief: >-
+      Avoiding the extremes of indulgence and harsh self-denial. The practitioner swings
+      between both instead.
+  - id: karma
+    label: Karma
+    brief: >-
+      Actions have results. The practitioner is surprised by the entirely predictable
+      results of their own actions.
+  - id: right-speech
+    label: Right speech
+    brief: >-
+      Speech that is true, kind, useful and timely; refraining from gossip, harsh words
+      and idle chatter. The practitioner struggles in group chats and meetings.
+  - id: five-precepts
+    label: The five precepts
+    brief: >-
+      The lay training rules: not killing, not stealing, no sexual misconduct, no false
+      speech, no intoxicants. Small everyday tests, such as the mosquito in the room.
+
+  # --- meditation and the mind ---
+  - id: monkey-mind
+    label: Monkey mind
+    brief: >-
+      The restless mind that jumps from thought to thought, especially the moment one
+      sits down to meditate.
+  - id: mindfulness
+    label: Mindfulness
+    brief: >-
+      Sati: present-moment awareness in daily life, and how quickly it is lost to
+      autopilot, phones and snacks.
+  - id: meditation
+    label: Meditation
+    brief: >-
+      Sitting practice: numb legs, sleepiness, planning lunch, watching the clock,
+      wondering whether the timer started.
+  - id: retreat
+    label: Retreat life
+    brief: >-
+      Silent retreats: noble silence, early bells, simple food, other people's small
+      noises, and coming home to a full inbox.
+
+  # --- the heart ---
+  - id: loving-kindness
+    label: Loving-kindness
+    brief: >-
+      Metta: wishing all beings well. Easy for friends and strangers, hard for the one
+      difficult person and for drivers in traffic.
+  - id: compassion
+    label: Compassion
+    brief: >-
+      Karuna: caring about others' suffering and acting on it. The practitioner feels it
+      for all sentient beings and still snaps at a family member.
+  - id: generosity
+    label: Generosity
+    brief: >-
+      Dana: giving freely. The practitioner's inner accountant, and the wish to be seen
+      being generous.
+  - id: patience
+    label: Patience
+    brief: >-
+      Kshanti: forbearance under provocation. Queues, slow wifi, relatives.
+
+  # --- Mahayana, Chan and Pure Land ---
+  - id: emptiness
+    label: Emptiness
+    brief: >-
+      Sunyata: things have no fixed, independent nature. The practitioner nods at "form
+      is emptiness" from the Heart Sutra and still treats their problems as solid.
+  - id: bodhisattva-vow
+    label: The bodhisattva vow
+    brief: >-
+      Vowing to work for the liberation of all sentient beings, however countless. The
+      practitioner makes the vast vow and then can't be bothered with one small favour.
+  - id: buddha-nature
+    label: Buddha-nature
+    brief: >-
+      Every being already has the capacity to awaken. The practitioner believes it of
+      everyone except themselves on a bad day, or except the person who annoyed them.
+  - id: chan
+    label: Chan and Zen
+    brief: >-
+      Koans, "just sitting", beginner's mind, chopping wood and carrying water. The
+      practitioner overthinks the instruction not to overthink.
+  - id: pure-land
+    label: Pure Land practice
+    brief: >-
+      Reciting the Buddha's name (nianfo), faith, vows and practice. The joke is on the
+      practitioner's wandering mind and lost count of recitations, never on Amitabha
+      or the Pure Land itself.
+  - id: vegetarian
+    label: Vegetarian life
+    brief: >-
+      Vegetarianism out of compassion, common in Chinese Mahayana: temple meals, mock
+      meat, well-meaning relatives, reading every ingredient label.
+  - id: merit
+    label: Merit
+    brief: >-
+      Making and dedicating merit: chanting, offerings, volunteering at the temple. The
+      practitioner quietly keeps score, which rather misses the point.

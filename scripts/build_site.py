@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from dharmeme.catalog import load_catalog  # noqa: E402
+from dharmeme.themes import load_themes  # noqa: E402
 from fetch_templates import image_size  # noqa: E402
 
 WEB_FILES = ["index.html", "app.js", "config.js", "deck.js", "images.js", "render.js",
@@ -111,6 +112,10 @@ def build(out: Path = ROOT / "_site", strict: bool = False, review: bool = False
 
     catalog = [{k: t[k] for k in CATALOG_FIELDS if k in t} for t in templates]
     (out / "catalog.json").write_text(json.dumps(catalog, indent=1), encoding="utf-8")
+
+    # The page only needs each theme's id and button label; the briefs are for the model.
+    themes = [{"id": t["id"], "label": t["label"]} for t in load_themes()]
+    (out / "themes.json").write_text(json.dumps(themes, ensure_ascii=False), encoding="utf-8")
 
     fields = ("id", "template_id", "slots")
     memes = [{k: e[k] for k in fields} for e in entries if e["status"] == "approved"]

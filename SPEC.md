@@ -7,7 +7,7 @@ The contracts every part builds against. Change this file first, then the code.
 | Feature | Input | Output | LLM at request time |
 |---|---|---|---|
 | **Random** | none | an approved meme from the bank, rendered | No |
-| **Prompt** | a topic, 1–200 chars | a meme whose template and text the LLM chose for the topic | Yes, one call |
+| **Theme** | one of the listed Buddhist themes | a fresh meme whose template and text the LLM chose for the theme | Yes, one call |
 
 Tone: affectionate humour about the practitioner's struggle (attachment, impermanence, the
 middle way, monkey mind, karma, suffering, letting go). Never ridicule the Buddha, the Sangha,
@@ -107,10 +107,18 @@ have no buttons). `POST /vote {"id", "vote": "up"|"down"|"report"}`; no LLM call
   votes with an up-rate under 30%, is sent once to the owner's chat with Keep and Remove
   buttons. Until the owner decides, it stays in the pool.
 
-## 5. Prompt feature — `POST /meme` → `write_meme(topic) -> {template_id, slots}`
+## 5. Theme feature — `POST /meme` → `write_meme(topic) -> {template_id, slots}`
 
-One LLM call in the Lambda. The system prompt contains the tone rules (§1) and the catalog:
-each template's `id`, `format`, and `slots` with `max_chars`. The user message is the topic.
+**The public picks a theme; it never types a topic.** `themes/en.yaml` lists the themes
+(`id`, button `label`, and a `brief` for the model), spanning the shared early teachings
+and Mahayana, Chan and Pure Land practice. The request names a theme id, and the model is
+given that theme's label and brief, so nothing a visitor types reaches the model. Free
+text as a topic is accepted only from the owner's own Telegram chat.
+
+One LLM call in the Lambda. The system prompt contains the tone rules (§1) and a random
+six of the catalog's templates (`id`, `format`, `slots` with `max_chars`), so the model
+doesn't use one favourite template every time. The user message is `Topic: <label>.
+<brief>`.
 
 Required LLM output (JSON only):
 
@@ -124,7 +132,7 @@ or, for a topic that would break the tone rules:
 {"declined": true}
 ```
 
-API: request `{"topic": "..."}`; response `{"template_id": ..., "slots": {...}}` on success,
+API: request `{"theme": "<id>"}` (an unlisted theme is a 400); response `{"template_id": ..., "slots": {...}}` on success,
 or `{"fallback": "<reason>", "message": "..."}` where `reason` is `declined`, `limit` or
 `error` — the page then shows the message and a random meme.
 
@@ -176,7 +184,7 @@ linked from the portfolio (`guoxiangng.github.io`, plus a `projects/dharmeme.htm
 - **Random** button: picks from the pool fetched from `GET /memes` on load (§4), renders.
   Works with the backend down, from the bundled `memes.json`.
 - The API's address is `API_BASE` in `web/config.js`.
-- **Prompt** box (max 200 chars): `POST` to the Function URL, renders the result or shows the
+- **Theme** buttons (from `themes.json`): `POST` to the Function URL, renders the result or shows the
   fallback message with a random meme.
 - **Download** button for the PNG.
 
@@ -225,7 +233,7 @@ tests/          (pytest) + web/render.test.js (node --test)
 6. Stubbed LLM returning `{"declined": true}` → `fallback: declined`.
 7. An IP's 6th prompt of the day → `fallback: limit`, no LLM call.
 8. Global counter at 200 → `fallback: limit`, no LLM call.
-9. A topic over 200 chars, or a non-POST request → HTTP 400 / 405, no LLM call.
+9. An unlisted theme, typed text, or a non-POST request → HTTP 400 / 405, no LLM call.
 
 ## 12. Build order
 
