@@ -52,6 +52,18 @@ themes:
     brief: >-
       The lay training rules: not killing, not stealing, no sexual misconduct, no false
       speech, no intoxicants. Small everyday tests, such as the mosquito in the room.
+  - id: three-trainings
+    label: Sila, samadhi, panna
+    brief: >-
+      The threefold training that sums up the eightfold path: virtue, concentration and
+      wisdom, each resting on the one before. The practitioner wants the wisdom, reads
+      about it at length, and skips the precepts and the sitting it depends on.
+  - id: five-aggregates
+    label: The five aggregates
+    brief: >-
+      The khandhas: form, feeling, perception, mental formations, consciousness; none of
+      them is "me" or "mine". The practitioner recites "this mood is not me" while being
+      entirely the mood.
 
   # --- meditation and the mind ---
   - id: monkey-mind
@@ -74,6 +86,12 @@ themes:
     brief: >-
       Silent retreats: noble silence, early bells, simple food, other people's small
       noises, and coming home to a full inbox.
+  - id: five-hindrances
+    label: The five hindrances
+    brief: >-
+      Sense desire, ill will, sloth and torpor, restlessness and worry, and doubt: what
+      gets in the way of a settled mind. In one sitting the practitioner meets all five,
+      usually sleepiness first and doubt about the whole method last.
 
   # --- the heart ---
   - id: loving-kindness
@@ -91,6 +109,12 @@ themes:
     brief: >-
       Dana: giving freely. The practitioner's inner accountant, and the wish to be seen
       being generous.
+  - id: relinquishment
+    label: Relinquishment
+    brief: >-
+      Caga: the open-handed heart that gives things up gladly. Giving away what one no
+      longer wanted is easy; the practitioner is tested by the thing they still like,
+      the last slice, the good seat, the favourite mug.
   - id: patience
     label: Patience
     brief: >-
