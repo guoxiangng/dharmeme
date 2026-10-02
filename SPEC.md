@@ -120,8 +120,9 @@ have no buttons). `POST /vote {"id", "vote": "up"|"down"|"report"}`; no LLM call
 **The public picks a theme; it never types a topic.** `themes/en.yaml` lists the themes
 (`id`, button `label`, and a `brief` for the model), spanning the shared early teachings
 and Mahayana, Chan and Pure Land practice. The request names a theme id, and the model is
-given that theme's label and brief, so nothing a visitor types reaches the model. Free
-text as a topic is accepted only from the owner's own Telegram chat.
+given that theme's label and brief, so nothing anyone types reaches the model. This holds
+for the owner too, and for the bot as for the website: typed text in the bot only brings
+up the theme list.
 
 One LLM call in the Lambda. The system prompt contains the tone rules (§1) and a random
 six of the catalog's templates (`id`, `format`, `slots` with `max_chars`), so the model

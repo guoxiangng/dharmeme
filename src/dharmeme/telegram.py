@@ -18,7 +18,7 @@ import uuid
 
 from .api import MESSAGES, MESSAGES_HANS, MESSAGES_ZH, pool_lang
 from .feedback import weight
-from .prompt import HANS, TOPIC_MAX, to_simplified, write_meme
+from .prompt import HANS, to_simplified, write_meme
 from .themes import as_topic
 
 HELP = (
@@ -268,13 +268,9 @@ class Bot:
         elif command.startswith("/") and command != "/meme":
             self.telegram.send_message(chat_id, HELP)
         else:
-            # Free text is a topic only in the owner's own chat; everyone else gets the
-            # theme list, so nothing a stranger types reaches the model.
-            topic = rest.strip() if command == "/meme" else text
-            if topic and chat_id == self.owner_chat_id and len(topic) <= TOPIC_MAX:
-                self.send_fresh(chat_id, topic, f"tg-{chat_id}")
-            else:
-                self.send_theme_list(chat_id)
+            # Nothing anyone types reaches the model, the owner included: /meme and plain
+            # text both bring up the theme list, exactly as on the website.
+            self.send_theme_list(chat_id)
 
     def send(self, chat_id: int, meme: dict, caption: str = "", lang: str = "en") -> None:
         markup = None

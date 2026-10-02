@@ -119,15 +119,14 @@ def test_tapping_a_theme_sends_a_fresh_meme_on_it():
     assert len(llm.calls) == 1
 
 
-def test_only_the_owner_may_type_a_topic():
-    llm = StubLLM(GOOD, GOOD)
+def test_nobody_types_a_topic_not_even_the_owner():
+    llm = StubLLM(GOOD)
     bot, telegram = make_bot(llm, owner=42)
     bot.handle(update("/meme my inbox"))
     bot.handle(update("my inbox"))
-    assert llm.calls == ["Topic: my inbox", "Topic: my inbox"]
-    assert [s[0] for s in telegram.sent] == ["photo", "photo"]
-    bot.handle(update("my inbox", chat_id=7))  # someone else: the theme list
-    assert len(llm.calls) == 2
+    bot.handle(update("my inbox", chat_id=7))
+    assert llm.calls == []  # typed text only ever brings up the theme list
+    assert all(s[0] != "photo" for s in telegram.sent)
 
 
 def test_limit_and_declined_send_a_random_meme_with_the_message():
