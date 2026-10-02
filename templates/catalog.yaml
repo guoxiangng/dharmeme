@@ -468,3 +468,310 @@ templates:
     slots:
       - {name: top, box: [0.02, 0.02, 0.96, 0.22], max_chars: 25}
       - {name: bottom, box: [0.02, 0.76, 0.96, 0.22], max_chars: 45}
+
+  - id: mocking-spongebob
+    name: Mocking SpongeBob
+    image: mocking-spongebob.jpg
+    url: https://i.imgflip.com/1otk96.jpg
+    size: [502, 353]
+    verified: true
+    format: >-
+      SpongeBob mimics someone in a silly voice. Top: something a person says in earnest.
+      Bottom: the same words repeated back mockingly, as what they actually do or mean.
+    tags: [hypocrisy, mimicry, excuses]
+    style: {uppercase: false}
+    slots:
+      - {name: top, box: [0.02, 0.02, 0.96, 0.22], max_chars: 45}
+      - {name: bottom, box: [0.02, 0.76, 0.96, 0.22], max_chars: 45}
+
+  - id: sad-pablo
+    name: Sad Pablo Escobar
+    image: sad-pablo.jpg
+    url: https://i.imgflip.com/1c1uej.jpg
+    size: [720, 709]
+    verified: true
+    format: >-
+      Three shots of a man sitting and standing alone, bored and waiting. One caption:
+      who is waiting, and for what that isn't coming.
+    tags: [waiting, loneliness, boredom]
+    slots:
+      - {name: waiting, box: [0.52, 0.02, 0.46, 0.22], max_chars: 50}
+
+  - id: trade-offer
+    name: Trade Offer
+    image: trade-offer.jpg
+    url: https://i.imgflip.com/54hjww.jpg
+    size: [607, 794]
+    verified: true
+    format: >-
+      A man proposes a lopsided deal under the printed headings "i receive:" and "you
+      receive:". Write what each side gets; the joke is how unfair or absurd the trade is.
+    tags: [bargaining, craving, deal]
+    slots:
+      - {name: i_receive, box: [0.03, 0.235, 0.44, 0.13], max_chars: 30}
+      - {name: you_receive, box: [0.53, 0.235, 0.44, 0.13], max_chars: 30}
+
+  - id: x-everywhere
+    name: X, X Everywhere
+    image: x-everywhere.jpg
+    url: https://i.imgflip.com/1ihzfe.jpg
+    size: [2118, 1440]
+    verified: true
+    format: >-
+      Buzz gestures grandly at the horizon while Woody looks worried. Top: a thing.
+      Bottom: the same thing followed by "everywhere".
+    tags: [abundance, noticing, everywhere]
+    slots:
+      - {name: top, box: [0.02, 0.02, 0.96, 0.20], max_chars: 30}
+      - {name: bottom, box: [0.02, 0.78, 0.96, 0.20], max_chars: 35}
+
+  - id: ancient-aliens
+    name: Ancient Aliens
+    image: ancient-aliens.jpg
+    url: https://i.imgflip.com/26am.jpg
+    size: [500, 436]
+    verified: true
+    format: >-
+      A man with wild hair explains his one theory. Top: "I'm not saying it was <cause>".
+      Bottom: "but it was <cause>". The cause he blames for everything.
+    tags: [blame, explanation, obsession]
+    slots:
+      - {name: top, box: [0.02, 0.02, 0.96, 0.20], max_chars: 40}
+      - {name: bottom, box: [0.02, 0.77, 0.96, 0.21], max_chars: 40}
+
+  - id: futurama-fry
+    name: Futurama Fry
+    image: futurama-fry.jpg
+    url: https://i.imgflip.com/1bgw.jpg
+    size: [552, 414]
+    verified: true
+    format: >-
+      Fry squints suspiciously, unable to tell two things apart. Top: "Not sure if
+      <one thing>". Bottom: "or <the other thing>".
+    tags: [doubt, uncertainty, self-deception]
+    slots:
+      - {name: top, box: [0.02, 0.02, 0.96, 0.20], max_chars: 40}
+      - {name: bottom, box: [0.02, 0.78, 0.96, 0.20], max_chars: 40}
+
+  - id: success-kid
+    name: Success Kid
+    image: success-kid.jpg
+    url: https://i.imgflip.com/1bhk.jpg
+    size: [500, 500]
+    verified: true
+    format: >-
+      A toddler clenches a fist in triumph. Top: a small situation. Bottom: the tiny
+      victory in it, celebrated as a great achievement.
+    tags: [small-win, progress, triumph]
+    slots:
+      - {name: top, box: [0.02, 0.02, 0.96, 0.22], max_chars: 45}
+      - {name: bottom, box: [0.02, 0.76, 0.96, 0.22], max_chars: 45}
+
+  - id: leo-cheers
+    name: Leonardo DiCaprio Cheers
+    image: leo-cheers.jpg
+    url: https://i.imgflip.com/39t1o.jpg
+    size: [600, 400]
+    verified: true
+    format: >-
+      A man in a tuxedo raises a glass with a knowing smile. A toast, usually ironic:
+      "To everyone who <relatable failing>". Top and bottom are the two halves of it.
+    tags: [toast, solidarity, irony]
+    slots:
+      - {name: top, box: [0.02, 0.02, 0.96, 0.20], max_chars: 45}
+      - {name: bottom, box: [0.02, 0.78, 0.96, 0.20], max_chars: 45}
+
+  - id: scroll-of-truth
+    name: The Scroll of Truth
+    image: scroll-of-truth.jpg
+    url: https://i.imgflip.com/21tqf4.jpg
+    size: [1280, 1236]
+    verified: true
+    format: >-
+      An adventurer finds "the Scroll of Truth" after 15 years, reads it, and throws it
+      away in disgust. Write what the scroll says: an uncomfortable truth he does not
+      want to hear.
+    tags: [truth, denial, aversion]
+    style: {color: black, stroke: none, uppercase: false}
+    slots:
+      - {name: truth, box: [0.18, 0.585, 0.19, 0.27], max_chars: 60}
+
+  - id: bad-luck-brian
+    name: Bad Luck Brian
+    image: bad-luck-brian.jpg
+    url: https://i.imgflip.com/1bip.jpg
+    size: [475, 562]
+    verified: true
+    format: >-
+      A school photo of an awkward boy. Top: something he does with good intentions.
+      Bottom: the unlucky or ironic way it goes wrong.
+    tags: [bad-luck, irony, backfire]
+    slots:
+      - {name: top, box: [0.02, 0.02, 0.96, 0.18], max_chars: 45}
+      - {name: bottom, box: [0.02, 0.80, 0.96, 0.18], max_chars: 45}
+
+  - id: oprah
+    name: Oprah You Get A
+    image: oprah.jpg
+    url: https://i.imgflip.com/gtj5t.jpg
+    size: [620, 464]
+    verified: true
+    format: >-
+      A talk-show host joyfully gives the same thing to everyone. Top: "You get <thing>".
+      Bottom: "Everybody gets <thing>".
+    tags: [generosity, abundance, universal]
+    slots:
+      - {name: top, box: [0.02, 0.02, 0.96, 0.20], max_chars: 35}
+      - {name: bottom, box: [0.02, 0.78, 0.96, 0.20], max_chars: 40}
+
+  - id: grumpy-cat
+    name: Grumpy Cat
+    image: grumpy-cat.jpg
+    url: https://i.imgflip.com/8p0a.jpg
+    size: [500, 616]
+    verified: true
+    format: >-
+      A cat with a permanent scowl. Top: something cheerful or reasonable that is asked
+      or offered. Bottom: a flat, grumpy refusal or complaint.
+    tags: [aversion, grumpiness, refusal]
+    slots:
+      - {name: top, box: [0.02, 0.02, 0.96, 0.18], max_chars: 45}
+      - {name: bottom, box: [0.02, 0.80, 0.96, 0.18], max_chars: 40}
+
+  - id: nut-button
+    name: Blank Nut Button
+    image: nut-button.jpg
+    url: https://i.imgflip.com/1yxkcp.jpg
+    size: [600, 446]
+    verified: true
+    format: >-
+      A hand slams a big blue button without a second thought. Label the button: the
+      thing someone does instantly and eagerly, on impulse.
+    tags: [impulse, craving, reflex]
+    slots:
+      - {name: button, box: [0.09, 0.52, 0.36, 0.22], max_chars: 35}
+
+  - id: finding-neverland
+    name: Finding Neverland
+    image: finding-neverland.jpg
+    url: https://i.imgflip.com/3pnmg.jpg
+    size: [423, 600]
+    verified: true
+    format: >-
+      A crying boy says something sad; a man answers gently; then they hug on a bench.
+      Boy: a small sad admission. Man: a kind reply that makes it worse or is too honest.
+    tags: [sadness, consolation, honesty]
+    slots:
+      - {name: boy, box: [0.02, 0.25, 0.96, 0.10], max_chars: 40}
+      - {name: man, box: [0.02, 0.62, 0.96, 0.10], max_chars: 40}
+
+  - id: unsettled-tom
+    name: Unsettled Tom
+    image: unsettled-tom.jpg
+    url: https://i.imgflip.com/2wifvo.jpg
+    size: [680, 550]
+    verified: true
+    format: >-
+      A cat stares, deeply unsettled. One caption at the top describing the moment
+      someone realises something uncomfortable about themselves or the situation.
+    tags: [realisation, discomfort, caught]
+    slots:
+      - {name: situation, box: [0.02, 0.02, 0.96, 0.20], max_chars: 60}
+
+  - id: laughing-leo
+    name: Laughing Leo
+    image: laughing-leo.png
+    url: https://i.imgflip.com/4acd7j.png
+    size: [470, 470]
+    verified: true
+    format: >-
+      A man laughs smugly, drink in hand. Top: who is laughing and when. Bottom: the
+      thing he finds funny, usually someone else making a mistake he also makes.
+    tags: [smugness, schadenfreude, pride]
+    slots:
+      - {name: top, box: [0.02, 0.02, 0.96, 0.18], max_chars: 45}
+      - {name: bottom, box: [0.02, 0.80, 0.96, 0.18], max_chars: 45}
+
+  - id: marked-safe
+    name: Marked Safe From
+    image: marked-safe.jpg
+    url: https://i.imgflip.com/2odckz.jpg
+    size: [618, 499]
+    verified: true
+    format: >-
+      A status badge with the printed words "Marked Safe From" and "Today". Fill the
+      gap with the everyday danger or temptation someone escaped today.
+    tags: [escape, relief, temptation]
+    style: {color: black, stroke: none, uppercase: false}
+    slots:
+      - {name: danger, box: [0.05, 0.53, 0.90, 0.15], max_chars: 40}
+
+  - id: spiderman-pointing
+    name: Spider-Man Pointing at Spider-Man
+    image: spiderman-pointing.jpg
+    url: https://i.imgflip.com/1tkjq9.jpg
+    size: [800, 450]
+    verified: true
+    format: >-
+      Two identical Spider-Men point at each other accusingly. Label each one: two
+      people or things that blame each other but are really the same.
+    tags: [sameness, blame, mirror]
+    slots:
+      - {name: left, box: [0.03, 0.74, 0.44, 0.22], max_chars: 30}
+      - {name: right, box: [0.53, 0.74, 0.44, 0.22], max_chars: 30}
+
+  - id: philosoraptor
+    name: Philosoraptor
+    image: philosoraptor.jpg
+    url: https://i.imgflip.com/1bgs.jpg
+    size: [500, 500]
+    verified: true
+    format: >-
+      A dinosaur deep in thought. A paradoxical or absurd philosophical question, split
+      in two: top is the "if" half, bottom is the question it leads to.
+    tags: [paradox, question, overthinking]
+    slots:
+      - {name: top, box: [0.02, 0.02, 0.96, 0.20], max_chars: 45}
+      - {name: bottom, box: [0.02, 0.78, 0.96, 0.20], max_chars: 45}
+
+  - id: morpheus
+    name: Matrix Morpheus
+    image: morpheus.jpg
+    url: https://i.imgflip.com/25w3.jpg
+    size: [500, 303]
+    verified: true
+    format: >-
+      A man in dark glasses reveals a truth. Top is always "What if I told you". Bottom:
+      a plain truth that people avoid noticing.
+    tags: [truth, revelation, wrong-view]
+    slots:
+      - {name: top, box: [0.02, 0.02, 0.96, 0.22], max_chars: 25}
+      - {name: bottom, box: [0.02, 0.74, 0.96, 0.24], max_chars: 45}
+
+  - id: first-world-problems
+    name: First World Problems
+    image: first-world-problems.jpg
+    url: https://i.imgflip.com/1bhf.jpg
+    size: [552, 367]
+    verified: true
+    format: >-
+      A woman weeps over a trivial inconvenience. Top and bottom are the two halves of
+      a tiny problem described as a tragedy.
+    tags: [dukkha, trivial, complaint]
+    slots:
+      - {name: top, box: [0.02, 0.02, 0.96, 0.22], max_chars: 45}
+      - {name: bottom, box: [0.02, 0.76, 0.96, 0.22], max_chars: 45}
+
+  - id: wonka
+    name: Condescending Wonka
+    image: wonka.jpg
+    url: https://i.imgflip.com/1bim.jpg
+    size: [550, 545]
+    verified: true
+    format: >-
+      A man leans on his hand with a patronising smile. Top: "Oh, you <did something
+      modest>?". Bottom: a sarcastic invitation to say more about how advanced they are.
+    tags: [sarcasm, pride, spiritual-ego]
+    slots:
+      - {name: top, box: [0.02, 0.02, 0.96, 0.18], max_chars: 45}
+      - {name: bottom, box: [0.02, 0.80, 0.96, 0.18], max_chars: 50}
