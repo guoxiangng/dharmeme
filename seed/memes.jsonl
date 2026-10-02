@@ -130,3 +130,5 @@
 {"id": "first-world-problems-0002", "template_id": "first-world-problems", "slots": {"top": "The retreat centre", "bottom": "has no oat milk"}, "status": "pending", "created": "2026-10-02"}
 {"id": "wonka-0001", "template_id": "wonka", "slots": {"top": "Oh, you did a weekend retreat?", "bottom": "Tell me more about how awakened you are"}, "status": "pending", "created": "2026-10-02"}
 {"id": "wonka-0002", "template_id": "wonka", "slots": {"top": "Oh, you've stopped having an ego?", "bottom": "Please, go on about yourself"}, "status": "pending", "created": "2026-10-02"}
+{"id": "believe-it-or-not-0001", "template_id": "believe-it-or-not", "slots": {"line_1": "Wanting what you don't have? Suffering.", "line_2": "Getting what you wanted? Suffering.", "line_3": "Getting it and keeping it? Believe it or not, also suffering."}, "status": "pending", "created": "2026-10-03"}
+{"id": "believe-it-or-not-0002", "template_id": "believe-it-or-not", "slots": {"line_1": "Sit badly? Monkey mind.", "line_2": "Sit well? Monkey mind.", "line_3": "Ten-day silent retreat? Believe it or not, monkey mind."}, "status": "pending", "created": "2026-10-03"}

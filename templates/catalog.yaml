@@ -775,3 +775,21 @@ templates:
     slots:
       - {name: top, box: [0.02, 0.02, 0.96, 0.18], max_chars: 45}
       - {name: bottom, box: [0.02, 0.80, 0.96, 0.18], max_chars: 50}
+
+  # The image is imgflip's single frame stacked three times (scratch-built, not fetched):
+  # `fetch_templates.py --force` would replace it with the single frame.
+  - id: believe-it-or-not
+    name: Believe It or Not
+    image: believe-it-or-not.jpg
+    url: https://i.imgflip.com/2lfb4x.jpg
+    size: [800, 1350]
+    verified: true
+    format: >-
+      A stern official lists cases in a deadpan rant, three panels, one line each. Every
+      case gets the same verdict. Lines 1 and 2: "<case>? <verdict>." Line 3 is the case
+      you would expect to be the exception: "<case>? Believe it or not, also <verdict>."
+    tags: [dukkha, inevitability, deadpan, escalation]
+    slots:
+      - {name: line_1, box: [0.02, 0.245, 0.96, 0.08], max_chars: 45}
+      - {name: line_2, box: [0.02, 0.578, 0.96, 0.08], max_chars: 45}
+      - {name: line_3, box: [0.02, 0.885, 0.96, 0.11], max_chars: 65}
