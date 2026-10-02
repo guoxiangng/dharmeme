@@ -2,8 +2,9 @@
 
     /random           a meme from the approved pool (no LLM)
     /meme             a list of themes to tap; the model writes a fresh meme on the one chosen
-    /chinesememe      the Chinese feature, in Simplified characters
-    /chinesememe_tw   the same, in Traditional characters
+    /chineserandom    a meme from the approved Chinese pool, in Simplified characters
+    /chinesememe      a list of Chinese themes to tap, in Simplified characters
+    /chineserandom_tw, /chinesememe_tw   the same two, in Traditional characters
 
 The public picks a theme and never types a topic. Only the owner's chat may send free
 text as a topic. A fresh meme counts against the same limits as the website, per user
@@ -24,8 +25,9 @@ HELP = (
     "dharmeme: Buddhist memes. All memes are impermanent.\n\n"
     "/random - a random meme\n"
     "/meme - pick a theme and get a fresh one\n"
-    "/chinesememe - 中文梗图（简体）\n"
-    "/chinesememe_tw - 中文梗圖（繁體）"
+    "/chineserandom - 随机中文梗图（简体）\n"
+    "/chinesememe - 选主题，现写一张（简体）\n"
+    "/chineserandom_tw · /chinesememe_tw - 繁體版"
 )
 PICK = "Pick a theme:"
 RANDOM_ZH = "random"  # the "any" button in a Chinese list: a meme from the Chinese pool
@@ -49,18 +51,25 @@ THEME = "th:"  # a button in the English theme list
 CHINESE = {
     "zh": {"prefix": "zh:", "script": "tc", "pick": "選一個主題：", "random": "隨機一張",
            "working": "{label}：參究中…", "gone": "這個主題不在了。", "report": "檢舉",
-           "messages": MESSAGES_ZH},
+           "empty": "梗圖庫還是空的。用 /chinesememe_tw 選個主題吧。", "messages": MESSAGES_ZH},
     HANS: {"prefix": "zs:", "script": "sc", "pick": "选一个主题：", "random": "随机一张",
            "working": "{label}：参究中…", "gone": "这个主题不在了。", "report": "举报",
-           "messages": MESSAGES_HANS},
+           "empty": "梗图库还是空的。用 /chinesememe 选个主题吧。", "messages": MESSAGES_HANS},
+}
+# command -> (what it does, in which script)
+CHINESE_COMMANDS = {
+    "/chineserandom": ("random", HANS), "/chineserandom_tw": ("random", "zh"),
+    "/chinesememe": ("themes", HANS), "/chinesememe_tw": ("themes", "zh"),
 }
 THEME_PREFIXES = {THEME: "en", **{c["prefix"]: lang for lang, c in CHINESE.items()}}
 OWNER_READS = HANS  # the script pending Chinese memes are shown to the owner in
 COMMANDS = [
     {"command": "random", "description": "A random meme"},
     {"command": "meme", "description": "Pick a theme and get a fresh one"},
-    {"command": "chinesememe", "description": "中文梗图（简体）"},
-    {"command": "chinesememe_tw", "description": "中文梗圖（繁體）"},
+    {"command": "chineserandom", "description": "随机中文梗图（简体）"},
+    {"command": "chinesememe", "description": "选主题，现写一张（简体）"},
+    {"command": "chineserandom_tw", "description": "隨機中文梗圖（繁體）"},
+    {"command": "chinesememe_tw", "description": "選主題，現寫一張（繁體）"},
 ]
 
 
@@ -255,10 +264,12 @@ class Bot:
             self.telegram.send_message(chat_id, f"This chat's id is {chat_id}")
         elif command == "/random":
             self.send_random(chat_id)
-        elif command == "/chinesememe":
-            self.send_theme_list(chat_id, HANS)
-        elif command == "/chinesememe_tw":
-            self.send_theme_list(chat_id, "zh")
+        elif command in CHINESE_COMMANDS:
+            action, lang = CHINESE_COMMANDS[command]
+            if action == "random":
+                self.send_chinese_random(chat_id, lang)
+            else:
+                self.send_theme_list(chat_id, lang)
         elif command.startswith("/") and command != "/meme":
             self.telegram.send_message(chat_id, HELP)
         else:
@@ -285,6 +296,14 @@ class Bot:
             self.telegram.send_message(chat_id, caption or "The meme pool is empty.")
             return
         self.send(chat_id, random.choices(memes, [weight(m) for m in memes])[0], caption)
+
+    def send_chinese_random(self, chat_id: int, lang: str) -> None:
+        """/chineserandom: a vetted meme from the Chinese pool, with no LLM call."""
+        pool = self.chinese_pool()
+        if not pool:
+            self.telegram.send_message(chat_id, CHINESE[lang]["empty"])
+            return
+        self.send(chat_id, random.choices(pool, [weight(m) for m in pool])[0], lang=lang)
 
     def send_fresh(self, chat_id: int, topic: str, voter: str, lang: str = "en") -> None:
         """Have the model write a meme on `topic` and send it, within `voter`'s limit.

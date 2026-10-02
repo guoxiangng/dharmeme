@@ -183,6 +183,21 @@ def test_random_serves_the_vetted_chinese_pool_without_the_llm():
     assert telegram.sent[0][2] != telegram.sent[1][2]  # the two scripts are drawn differently
 
 
+def test_chineserandom_is_a_command_of_its_own():
+    llm = StubLLM()
+    bot, telegram, _ = make_bot(llm, pool_memes=[POOL_ZH, POOL_EN])
+    for command in ("/chineserandom", "/chineserandom_tw"):
+        bot.handle({"message": {"chat": {"id": 42}, "text": command}})
+    assert llm.calls == [] and telegram.calls == []  # a meme straight away, no list, no LLM
+    assert [s[0] for s in telegram.sent] == ["photo", "photo"]
+    assert [m["inline_keyboard"][0][2]["text"] for m in telegram.markups] == ["举报", "檢舉"]
+    assert telegram.markups[0]["inline_keyboard"][0][0]["callback_data"] == "up:z1"
+
+    empty_bot, empty_telegram, _ = make_bot(llm, pool_memes=[POOL_EN])
+    empty_bot.handle({"message": {"chat": {"id": 42}, "text": "/chineserandom"}})
+    assert empty_telegram.sent == [("message", 42, CHINESE[HANS]["empty"])]
+
+
 def test_random_writes_a_fresh_one_while_the_chinese_pool_is_empty():
     llm = StubLLM(GOOD_ZH)
     bot, telegram, _ = make_bot(llm, pool_memes=[POOL_EN])

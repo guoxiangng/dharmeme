@@ -160,9 +160,10 @@ limits as `/meme`.
   `/chinesememe_tw` is Traditional (`zh`). Everything Chinese is written and stored once,
   in Traditional; Simplified is that text converted character by character (OpenCC
   `t2s`): the themes, the prompt, and every caption. The wording and context are the same.
-- **Chinese pool.** Pool memes carry `lang` (absent = English). The 隨機一張 / 随机一张
-  button serves an approved Chinese meme with no LLM call, drawn in the script of the
-  command used, with the usual vote buttons. The daily generator writes a Chinese batch
+- **Chinese pool.** Pool memes carry `lang` (absent = English). `/chineserandom` and
+  `/chineserandom_tw` send an approved Chinese meme straight away with no LLM call, in
+  that script, with the usual vote buttons; the 随机一张 / 隨機一張 button at the top of
+  the theme lists does the same. The daily generator writes a Chinese batch
   too (half the English count); those wait as pending and go to the owner's chat, shown
   in Simplified. The website and `/random` serve the English pool only.
 - A slot holds half as many Chinese characters as its `max_chars` (a Chinese character
