@@ -4,6 +4,7 @@ deployment package.
 """
 import json
 import os
+import time
 from functools import cache
 from pathlib import Path
 
@@ -100,6 +101,31 @@ def generate() -> dict:
     return {"added": [m["id"] for m in added], "sent_to_owner": ask_owner(added)}
 
 
+def revet(limit: int) -> dict:
+    """Take up to `limit` approved memes out of the pool and ask the owner about each.
+
+    Run repeatedly until nothing is left approved. A meme that could not be sent goes
+    back to approved, so the next run picks it up again.
+    """
+    pool, _ = _engine()
+    bot = _owner_bot()
+    if bot is None:
+        return {"ok": False, "error": "no owner chat is set"}
+    approved = sorted((m for m in pool.all() if m["status"] == "approved"),
+                      key=lambda m: m["id"])
+    sent = 0
+    for meme in approved[:limit]:
+        pool.set_status(meme["id"], "pending")
+        try:
+            bot.ask_owner(meme)
+            sent += 1
+        except Exception as exc:  # noqa: BLE001
+            print(f"revet: could not send {meme['id']}: {exc!r}")
+            pool.set_status(meme["id"], "approved")
+        time.sleep(0.4)  # stay under Telegram's per-chat rate limit
+    return {"ok": True, "sent_to_owner": sent, "still_approved": len(approved) - sent}
+
+
 def send_pending() -> dict:
     """Re-send every pending meme to the owner (for ones added before a chat was set)."""
     pool, _ = _engine()
@@ -142,5 +168,7 @@ def handler(event, context):
             return generate()
         if event.get("admin") == "send_pending":
             return send_pending()
+        if event.get("admin") == "revet":
+            return revet(int(event.get("limit", 20)))
         return {"ok": False, "error": "unknown admin event"}
     return _api().handle(event)
