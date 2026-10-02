@@ -127,8 +127,8 @@ def ask_owner(memes: list[dict]) -> int:
 
 
 def generate(langs: tuple[str, ...] = ("en", "zh")) -> dict:
-    """The daily run (SPEC.md §4), once per language: the English pool, and the Chinese
-    pool at half the size. New memes are always pending: nothing generated is published
+    """The daily run (SPEC.md §4), once per language, the same number for each pool.
+    New memes are always pending: nothing generated is published
     until the owner approves it in their own chat."""
     from dharmeme import generator
 
@@ -137,7 +137,7 @@ def generate(langs: tuple[str, ...] = ("en", "zh")) -> dict:
     added = []
     for lang in langs:
         added += generator.run(pool, get_llm(), TEMPLATES, status="pending", lang=lang,
-                               count=count if lang == "en" else max(1, count // 2),
+                               count=count,
                                themes=THEMES if lang == "en" else THEMES_ZH)
     return {"added": [m["id"] for m in added], "sent_to_owner": ask_owner(added)}
 

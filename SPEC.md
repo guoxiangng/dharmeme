@@ -178,7 +178,7 @@ limits as `/meme`.
   `/chineserandom_tw` send an approved Chinese meme straight away with no LLM call, in
   that script, with the usual vote buttons; the 随机一张 / 隨機一張 button at the top of
   the theme lists does the same. The daily generator writes a Chinese batch
-  too (half the English count); those wait as pending and go to the owner's chat, shown
+  too (the same count as English); those wait as pending and go to the owner's chat, shown
   in Simplified. The website and `/random` serve the English pool only.
 - A slot holds half as many Chinese characters as its `max_chars` (a Chinese character
   is about twice as wide).
