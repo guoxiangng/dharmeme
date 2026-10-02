@@ -18,8 +18,21 @@ class Pool:
             if item["status"] == "approved"
         ]
 
+    def all(self) -> list[dict]:
+        """Every meme, whatever its status."""
+        return [{k: item[k] for k in (*FIELDS, "status", "created")}
+                for item in self.store.items(PK)]
+
     def add(self, entry: dict) -> None:
         self.store.put({"pk": PK, "sk": entry["id"], **entry})
+
+    def set_status(self, meme_id: str, status: str) -> bool:
+        """Change one meme's status. False if there is no such meme."""
+        for item in self.store.items(PK):
+            if item["sk"] == meme_id:
+                self.store.put({**item, "status": status})
+                return True
+        return False
 
     def add_missing(self, entries: list[dict]) -> int:
         """Add the `entries` whose id the pool has never seen. Returns how many were added.

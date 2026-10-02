@@ -11,6 +11,6 @@ class LLMResponse:
 
 
 class LLMProvider(Protocol):
-    def complete(self, system: str, user: str) -> LLMResponse:
+    def complete(self, system: str, user: str, max_tokens: int | None = None) -> LLMResponse:
         """Single-turn completion: a system prompt + a user message -> text."""
         ...

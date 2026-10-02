@@ -17,6 +17,20 @@ Parameters:
     Description: >-
       SSM Parameter Store name (SecureString) holding the Telegram bot token. The bot is
       off until the parameter exists; it is created by hand, never by this template.
+  OwnerChatId:
+    Type: String
+    Default: ""
+    Description: >-
+      The owner's Telegram chat id (send /id to the bot). With it set, generated memes go
+      live and the owner gets each one with a Remove button; without it they stay pending.
+  GenerateCount:
+    Type: Number
+    Default: 10
+    Description: Memes the daily generator tries to add. Two LLM calls a day, whatever this is.
+  GenerateCron:
+    Type: String
+    Default: "cron(0 1 * * ? *)"    # 09:00 SGT daily
+    Description: EventBridge schedule expression (UTC) for the generator.
   LimitPerIp:
     Type: Number
     Default: 5
@@ -53,7 +67,7 @@ Resources:
       Handler: handler.handler
       Runtime: python3.13
       Architectures: [x86_64]
-      Timeout: 30
+      Timeout: 120                  # the generator's two calls and its Telegram messages
       MemorySize: 1024              # more memory = more CPU; the SDK import is the slow part
       ReservedConcurrentExecutions: 5   # a traffic spike can't fan out
       Environment:
@@ -62,6 +76,8 @@ Resources:
           DHARMEME_LIMIT_PER_IP: !Ref LimitPerIp
           DHARMEME_LIMIT_PER_DAY: !Ref LimitPerDay
           DHARMEME_TELEGRAM_PARAM: !Ref TelegramTokenParameter
+          DHARMEME_OWNER_CHAT: !Ref OwnerChatId
+          DHARMEME_GENERATE_COUNT: !Ref GenerateCount
           LLM_PROVIDER: bedrock
           BEDROCK_MODEL_ID: !Ref BedrockModelId
       FunctionUrlConfig:
@@ -70,6 +86,12 @@ Resources:
           AllowOrigins: [!Ref AllowedOrigin]
           AllowMethods: [GET, POST]
           AllowHeaders: [content-type]
+      Events:
+        DailyGenerate:
+          Type: Schedule
+          Properties:
+            Schedule: !Ref GenerateCron
+            Input: '{"admin": "generate"}'
       Policies:
         - DynamoDBCrudPolicy: { TableName: !Ref Table }
         - Statement:

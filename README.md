@@ -55,6 +55,20 @@ It is off until a bot token exists. To switch it on:
 
 Topic memes count against the same daily limits as the website, per chat.
 
+## Daily generator
+
+Every day at 09:00 SGT the Lambda writes a batch of new memes and has a second model call
+review them; the ones that pass join the pool. To have them go live with a veto, send `/id`
+to the bot and deploy with that number: `sam deploy --parameter-overrides OwnerChatId=<id>`.
+Each new meme then arrives in your chat with a Remove button. Until `OwnerChatId` is set,
+generated memes are stored as pending and not shown.
+
+To run it by hand:
+
+```
+aws lambda invoke --region ap-southeast-1 --function-name <ApiFunction name> --cli-binary-format raw-in-base64-out --payload "{\"admin\":\"generate\"}" out.json
+```
+
 ## Try it locally
 
 ```

@@ -63,9 +63,34 @@ def get_bot():
 
         pool, limits = _engine()
         renderer = Renderer(HERE / "images", HERE / "Anton-Regular.ttf")
-        _bot = (Bot(pool, limits, get_llm, TEMPLATES, renderer, TelegramApi(token)),
+        owner = os.environ.get("DHARMEME_OWNER_CHAT", "").strip()
+        _bot = (Bot(pool, limits, get_llm, TEMPLATES, renderer, TelegramApi(token),
+                    int(owner) if owner else None),
                 webhook_secret(token))
     return _bot
+
+
+def generate() -> dict:
+    """The daily run: add new memes to the pool (SPEC.md §4).
+
+    With an owner chat configured the memes go live and the owner gets each one with a
+    Remove button. Without one nobody could veto them, so they wait as pending.
+    """
+    from dharmeme import generator
+
+    pool, _ = _engine()
+    configured = get_bot()
+    bot = configured[0] if configured and configured[0].owner_chat_id else None
+    added = generator.run(pool, get_llm(), TEMPLATES,
+                          count=int(os.environ.get("DHARMEME_GENERATE_COUNT", "10")),
+                          status="approved" if bot else "pending")
+    for meme in added:
+        if bot:
+            try:
+                bot.notify_new(meme)
+            except Exception as exc:  # noqa: BLE001 — the meme is in the pool either way
+                print(f"generate: could not notify the owner about {meme['id']}: {exc!r}")
+    return {"added": [m["id"] for m in added], "status": "approved" if bot else "pending"}
 
 
 @cache
@@ -85,7 +110,7 @@ def set_telegram_webhook(url: str) -> dict:
     result = telegram.call("setWebhook", {
         "url": url.rstrip("/") + "/telegram",
         "secret_token": webhook_secret(token),
-        "allowed_updates": ["message"],
+        "allowed_updates": ["message", "callback_query"],
     })
     telegram.call("setMyCommands", {"commands": COMMANDS})
     bot = telegram.call("getMe", {})["result"]
@@ -93,8 +118,13 @@ def set_telegram_webhook(url: str) -> dict:
 
 
 def handler(event, context):
-    # A direct `aws lambda invoke`, which needs IAM permission; a Function URL request
-    # always arrives wrapped in requestContext, so it can never reach this branch.
-    if "requestContext" not in event and event.get("admin") == "set_telegram_webhook":
-        return set_telegram_webhook(event["url"])
+    # The daily schedule, or a direct `aws lambda invoke` (which needs IAM permission).
+    # A Function URL request always arrives wrapped in requestContext, so it can never
+    # reach this branch.
+    if "requestContext" not in event:
+        if event.get("admin") == "set_telegram_webhook":
+            return set_telegram_webhook(event["url"])
+        if event.get("admin") == "generate":
+            return generate()
+        return {"ok": False, "error": "unknown admin event"}
     return _api().handle(event)

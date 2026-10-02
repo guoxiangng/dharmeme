@@ -21,6 +21,7 @@ HELP = (
     "/meme <topic> - a meme about your topic\n\n"
     "Or just send me a topic."
 )
+REMOVE = "rm:"  # callback data prefix on the owner's Remove button
 COMMANDS = [
     {"command": "random", "description": "A random meme"},
     {"command": "meme", "description": "A meme about your topic"},
@@ -47,9 +48,12 @@ class TelegramApi:
     def send_message(self, chat_id: int, text: str) -> None:
         self.call("sendMessage", {"chat_id": chat_id, "text": text})
 
-    def send_photo(self, chat_id: int, photo: bytes, caption: str = "") -> None:
+    def send_photo(self, chat_id: int, photo: bytes, caption: str = "",
+                   reply_markup: dict | None = None) -> None:
         boundary = uuid.uuid4().hex
         parts = [("chat_id", str(chat_id))] + ([("caption", caption)] if caption else [])
+        if reply_markup:
+            parts.append(("reply_markup", json.dumps(reply_markup)))
         body = b"".join(
             f'--{boundary}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'.encode()
             for k, v in parts
@@ -67,15 +71,38 @@ class TelegramApi:
 
 
 class Bot:
-    def __init__(self, pool, limits, get_llm, templates: list[dict], renderer, telegram) -> None:
+    def __init__(self, pool, limits, get_llm, templates: list[dict], renderer, telegram,
+                 owner_chat_id: int | None = None) -> None:
         self.pool = pool
         self.limits = limits
         self.get_llm = get_llm
         self.templates = {t["id"]: t for t in templates}
         self.renderer = renderer
         self.telegram = telegram
+        self.owner_chat_id = owner_chat_id  # gets the generator's memes, and may remove them
+
+    def notify_new(self, meme: dict) -> None:
+        """Show the owner a meme the generator just added, with a button to remove it."""
+        button = {"text": "Remove", "callback_data": f"{REMOVE}{meme['id']}"}
+        photo = self.renderer.render(self.templates[meme["template_id"]], meme["slots"])
+        self.telegram.send_photo(self.owner_chat_id, photo, "New in the pool.",
+                                 {"inline_keyboard": [[button]]})
+
+    def handle_button(self, query: dict) -> None:
+        data = query.get("data") or ""
+        chat_id = ((query.get("message") or {}).get("chat") or {}).get("id")
+        if chat_id != self.owner_chat_id or not data.startswith(REMOVE):
+            text = "Not allowed."
+        elif self.pool.set_status(data[len(REMOVE):], "rejected"):
+            text = "Removed from the pool."
+        else:
+            text = "That meme is not in the pool."
+        self.telegram.call("answerCallbackQuery", {"callback_query_id": query["id"], "text": text})
 
     def handle(self, update: dict) -> None:
+        if "callback_query" in update:
+            self.handle_button(update["callback_query"])
+            return
         message = update.get("message") or {}
         text = (message.get("text") or "").strip()
         chat_id = (message.get("chat") or {}).get("id")
@@ -85,6 +112,8 @@ class Bot:
         command = command.split("@")[0].lower()  # "/meme@dharmeme_bot" in groups
         if command in ("/start", "/help"):
             self.telegram.send_message(chat_id, HELP)
+        elif command == "/id":  # for setting OwnerChatId in the SAM template
+            self.telegram.send_message(chat_id, f"This chat's id is {chat_id}")
         elif command == "/random":
             self.send_random(chat_id)
         elif command == "/meme":

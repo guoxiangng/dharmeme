@@ -23,7 +23,7 @@ class StubLLM:
         self.replies = list(replies)
         self.calls = []
 
-    def complete(self, system, user):
+    def complete(self, system, user, max_tokens=None):
         self.calls.append(user)
         reply = self.replies.pop(0)
         if isinstance(reply, Exception):

@@ -81,8 +81,14 @@ live list: once the generator and the bot change the pool, the file is not updat
   or over `max_chars`.
 - `review.html` renders the seed for local review (`build_site.py --review`); it is never
   deployed.
-- Later: a scheduled generator adds memes that pass an LLM tone check, and the Telegram
-  bot lets the owner remove one.
+- **Daily generator** (`generator.py`, an EventBridge schedule on the same Lambda): two LLM
+  calls a day whatever the traffic. The first writes one meme for each of the N templates
+  with the fewest memes, shown what the pool already has; the second, a separate reviewer,
+  passes or fails each against the tone rules. Only valid, non-duplicate, passed memes are
+  added. An unreadable review adds nothing.
+- With `OwnerChatId` set, generated memes are `approved` and the bot sends each to the
+  owner with a **Remove** button, which sets the meme to `rejected`. Without it nobody could
+  veto them, so they are added as `pending` and not served.
 
 ## 5. Prompt feature — `POST /meme` → `write_meme(topic) -> {template_id, slots}`
 
