@@ -88,12 +88,23 @@ def _ask_owner_to_review(meme: dict, reason: str) -> None:
         bot.ask_owner_to_review(meme, reason)
 
 
+def _nominate(meme: dict) -> None:
+    """A themed meme its requester liked: ask the owner whether it joins the pool. If it
+    can't be sent now it stays pending, and `send_pending` offers it later."""
+    bot = _owner_bot()
+    if bot:
+        bot.ask_owner(meme, "A user liked this themed meme. Publish it?")
+        _engine()[0].mark_asked(meme["id"])
+
+
 @cache
 def _feedback():
     from dharmeme.feedback import Feedback
 
     pool, _ = _engine()
-    return Feedback(pool.store, _ask_owner_to_review)
+    owner = os.environ.get("DHARMEME_OWNER_CHAT", "").strip()
+    return Feedback(pool.store, _ask_owner_to_review, nominate=_nominate,
+                    owner_voter=f"tg-{owner}" if owner else None)
 
 
 def ask_owner(memes: list[dict]) -> int:
@@ -154,7 +165,7 @@ def mark_pending_asked() -> dict:
 @cache
 def _api() -> Api:
     pool, limits = _engine()
-    return Api(pool, limits, get_llm, TEMPLATES, get_bot, _feedback(), THEMES)
+    return Api(pool, limits, get_llm, TEMPLATES, get_bot, _feedback(), THEMES, THEMES_ZH)
 
 
 def set_telegram_webhook(url: str) -> dict:

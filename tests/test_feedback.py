@@ -8,10 +8,13 @@ from dharmeme.limits import Limits
 from dharmeme.pool import Pool
 from dharmeme.store import MemoryStore
 from dharmeme.telegram import Bot
+from dharmeme.themes import THEMES_DIR, load_themes
 from test_bot import RENDERER, FakeTelegram
-from test_engine import GOOD
+from test_engine import GOOD, StubLLM
 
 TEMPLATES = load_catalog()
+THEMES = load_themes()
+THEMES_ZH = load_themes(THEMES_DIR / "zh.yaml")
 SEED = {"id": "a1", "status": "approved", "created": "2026-10-01", **GOOD}
 
 
@@ -106,6 +109,88 @@ def test_votes_have_a_daily_allowance():
     assert all(limits.allow_vote("ip-1", per_day=3) for _ in range(3))
     assert not limits.allow_vote("ip-1", per_day=3)
     assert limits.allow_vote("ip-2", per_day=3)
+
+
+def themed_api(llm, owner_voter=None):
+    """An API whose themed memes can be nominated; returns it with what the owner was sent."""
+    store = MemoryStore()
+    pool = Pool(store)
+    nominated = []
+    feedback = Feedback(store, nominate=nominated.append, owner_voter=owner_voter)
+    api = Api(pool, Limits(store), lambda: llm, TEMPLATES, feedback=feedback,
+              themes=THEMES, themes_zh=THEMES_ZH)
+    return api, pool, feedback, nominated
+
+
+def ask(api, body, path="/meme", ip="1.2.3.4"):
+    response = api.handle({"rawPath": path, "body": json.dumps(body),
+                           "requestContext": {"http": {"method": "POST", "sourceIp": ip}}})
+    return json.loads(response["body"])
+
+
+def test_a_themed_meme_is_held_outside_the_pool_until_its_requester_likes_it():
+    api, pool, feedback, nominated = themed_api(StubLLM(GOOD))
+    meme = ask(api, {"theme": "karma"})
+    assert meme["id"].startswith("t-") and meme["slots"] == GOOD["slots"]
+    assert pool.all() == [] and len(feedback.store.items("fresh")) == 1
+
+    assert ask(api, {"id": meme["id"], "vote": "up"}, "/vote") == {"result": "nominated"}
+    assert [m["id"] for m in nominated] == [meme["id"]]  # the owner is asked
+    stored = pool.all()[0]
+    assert (stored["status"], stored["lang"]) == ("pending", "en")
+    assert pool.approved() == [] and feedback.store.items("fresh") == []  # not served yet
+    assert ask(api, {"id": meme["id"], "vote": "up"}, "/vote") == {"result": "already"}
+
+    pool.set_status(meme["id"], "approved")  # the owner taps Approve
+    assert pool.approved()[0]["up"] == 1
+
+
+def test_a_thumbs_down_discards_a_themed_meme():
+    api, pool, feedback, nominated = themed_api(StubLLM(GOOD))
+    meme = ask(api, {"theme": "karma"})
+    assert ask(api, {"id": meme["id"], "vote": "down"}, "/vote") == {"result": "ok"}
+    assert pool.all() == [] and feedback.store.items("fresh") == [] and nominated == []
+
+
+def test_the_owners_own_thumbs_up_needs_no_second_approval():
+    store = MemoryStore()
+    nominated = []
+    feedback = Feedback(store, nominate=nominated.append, owner_voter="tg-99")
+    meme_id = feedback.keep_fresh(GOOD)
+    assert feedback.vote("tg-99", meme_id, "up") == "added"
+    assert [m["id"] for m in Pool(store).approved()] == [meme_id] and nominated == []
+
+
+def test_chinese_on_the_api_is_written_once_and_read_in_either_script():
+    zh = {"template_id": "drake", "slots": {"rejected": "專心念佛", "preferred": "邊念邊想晚餐"}}
+    llm = StubLLM(zh, zh, {"declined": True})
+    api, pool, feedback, _ = themed_api(llm)
+    traditional = ask(api, {"theme": "nianfo", "lang": "zh"})
+    simplified = ask(api, {"theme": "nianfo", "lang": "zh-hans"})
+    assert traditional["slots"]["rejected"] == "專心念佛"
+    assert simplified["slots"]["rejected"] == "专心念佛"
+    assert llm.calls[0] == llm.calls[1] and llm.calls[0].startswith("主題: ")
+    assert all(h["lang"] == "zh" and h["slots"] == zh["slots"]
+               for h in feedback.store.items("fresh"))  # stored in Traditional either way
+    declined = ask(api, {"theme": "nianfo", "lang": "zh-hans"})
+    assert declined == {"fallback": "declined", "message": "这个题目，还是保持圣默然吧。"}
+
+    pool.add({"id": "z1", "status": "approved", "created": "2026-10-03", "lang": "zh", **zh})
+    pool.add({"id": "a1", "status": "approved", "created": "2026-10-03", **GOOD})
+
+    def listed(lang):
+        query = {"lang": lang} if lang else None
+        return json.loads(api.handle({"rawPath": "/memes", "queryStringParameters": query,
+                                      "requestContext": {"http": {"method": "GET",
+                                                                  "sourceIp": "1.1.1.1"}}})["body"])
+
+    assert [m["id"] for m in listed(None)] == ["a1"]
+    assert listed("zh")[0]["slots"]["rejected"] == "專心念佛"
+    assert listed("zh-hans")[0]["slots"]["rejected"] == "专心念佛"
+    assert "error" in listed("klingon")
+    for bad in ({"theme": "nianfo"}, {"theme": "karma", "lang": "zh"},
+                {"theme": "karma", "lang": "klingon"}):
+        assert "error" in ask(api, bad)  # a theme only exists in its own language
 
 
 def make_bot():

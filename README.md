@@ -16,9 +16,10 @@ trying to practise, never on the teaching.
 - **Themes**: pick a Buddhist theme (impermanence, the bodhisattva vow, Pure Land
   practice…) and a model chooses a template and writes a fresh caption. Visitors pick
   from a list; they never type.
-- **Chinese**, in the bot: its own themes and voice for 汉传佛教 and 人间佛教, in Simplified
-  and Traditional characters, with its own approved pool.
+- **Chinese**, on the site and in the bot: its own themes and voice for 汉传佛教 and
+  人间佛教, in Simplified and Traditional characters, with its own approved pool.
 - **Votes**: 👍, 👎 and Report on pool memes. Votes nudge the order, never the exposure.
+  A 👍 on a meme written for you nominates it for the pool; the owner decides.
 - **A daily batch** of new memes, reviewed by a second model call, then held as pending
   until the owner approves each one in a private Telegram chat.
 

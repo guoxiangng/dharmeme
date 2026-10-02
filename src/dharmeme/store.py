@@ -25,6 +25,12 @@ class DynamoStore:
     def put(self, item: dict) -> None:
         self.table.put_item(Item=item)
 
+    def get(self, pk: str, sk: str) -> dict | None:
+        return self.table.get_item(Key={"pk": pk, "sk": sk}).get("Item")
+
+    def delete(self, pk: str, sk: str) -> None:
+        self.table.delete_item(Key={"pk": pk, "sk": sk})
+
     def put_new(self, item: dict) -> bool:
         """Store `item` unless one with its key already exists; False if it does. Atomic."""
         from botocore.exceptions import ClientError
@@ -86,6 +92,13 @@ class MemoryStore:
 
     def put(self, item: dict) -> None:
         self.data[(item["pk"], item["sk"])] = dict(item)
+
+    def get(self, pk: str, sk: str) -> dict | None:
+        item = self.data.get((pk, sk))
+        return dict(item) if item else None
+
+    def delete(self, pk: str, sk: str) -> None:
+        self.data.pop((pk, sk), None)
 
     def put_new(self, item: dict) -> bool:
         if (item["pk"], item["sk"]) in self.data:

@@ -1,10 +1,11 @@
 """HTTP API behind the Lambda Function URL (SPEC.md §5).
 
-    GET  /memes     -> the approved pool, for the page's Random button (no LLM)
-    POST /meme      -> {"theme": "<id>"} -> a fresh meme on that theme, or a fallback
-    POST /vote      -> {"id": "...", "vote": "up|down|report"} on a pool meme (no LLM)
-    POST /telegram  -> a Telegram update (webhook), if a bot is configured
+    GET  /memes?lang=  -> the approved pool in that language, for Random (no LLM)
+    POST /meme         -> {"theme": "<id>", "lang": "..."} -> a fresh meme, or a fallback
+    POST /vote         -> {"id": "...", "vote": "up|down|report"} (no LLM)
+    POST /telegram     -> a Telegram update (webhook), if a bot is configured
 
+`lang` is "en" (the default), "zh" (Traditional Chinese) or "zh-hans" (Simplified).
 CORS is configured on the Function URL, so no CORS headers are added here.
 """
 import base64
@@ -12,7 +13,7 @@ import hmac
 import json
 
 from .feedback import KINDS
-from .prompt import write_meme
+from .prompt import HANS, to_simplified, write_meme
 from .themes import as_topic
 
 MESSAGES = {
@@ -20,7 +21,31 @@ MESSAGES = {
     "declined": "Some topics are best met with noble silence. Here is another one instead.",
     "error": "The mind wandered. Here is another one instead.",
 }
+MESSAGES_ZH = {
+    "limit": "今天的梗圖發完了。諸行無常，明天再來。",
+    "declined": "這個題目，還是保持聖默然吧。",
+    "error": "剛剛打妄想了，請再試一次。",
+}
+MESSAGES_HANS = {
+    "limit": "今天的梗图发完了。诸行无常，明天再来。",
+    "declined": "这个题目，还是保持圣默然吧。",
+    "error": "刚刚打妄想了，请再试一次。",
+}
+MESSAGES_BY_LANG = {"en": MESSAGES, "zh": MESSAGES_ZH, HANS: MESSAGES_HANS}
 POOL_CACHE_SECONDS = 300
+
+
+def pool_lang(lang: str) -> str:
+    """The language a meme is written and stored in. Both Chinese scripts share one
+    source, in Traditional; Simplified is converted on the way out."""
+    return "en" if lang == "en" else "zh"
+
+
+def in_script(meme: dict, lang: str) -> dict:
+    """The meme as `lang` should read it: Simplified readers get converted text."""
+    if lang != HANS:
+        return meme
+    return {**meme, "slots": {k: to_simplified(v) for k, v in meme["slots"].items()}}
 
 
 def _response(status: int, body: dict | list, headers: dict | None = None) -> dict:
@@ -38,14 +63,17 @@ def _body(event: dict) -> str:
     return raw
 
 
-def _fallback(reason: str) -> dict:
-    return _response(200, {"fallback": reason, "message": MESSAGES[reason]})
+def _fallback(reason: str, lang: str = "en") -> dict:
+    return _response(200, {"fallback": reason, "message": MESSAGES_BY_LANG[lang][reason]})
 
 
 class Api:
     def __init__(self, pool, limits, get_llm, templates: list[dict], get_bot=None,
-                 feedback=None, themes: list[dict] = ()) -> None:
-        self.themes = {t["id"]: t for t in themes}
+                 feedback=None, themes: list[dict] = (), themes_zh: list[dict] = ()) -> None:
+        # Themes by the language they are written in. Simplified requests use the
+        # Traditional theme of the same id; only the output is converted.
+        self.themes = {"en": {t["id"]: t for t in themes},
+                       "zh": {t["id"]: t for t in themes_zh}}
         self.pool = pool
         self.limits = limits
         self.get_llm = get_llm  # called only for a prompt request, so /memes stays light
@@ -78,8 +106,7 @@ class Api:
         if path == "/memes":
             if method != "GET":
                 return _response(405, {"error": "use GET"})
-            return _response(200, self.pool.approved(),
-                             {"cache-control": f"public, max-age={POOL_CACHE_SECONDS}"})
+            return self.memes(event)
         if path == "/meme":
             if method != "POST":
                 return _response(405, {"error": "use POST"})
@@ -89,6 +116,13 @@ class Api:
                 return _response(405, {"error": "use POST"})
             return self.vote(event, http["sourceIp"])
         return _response(404, {"error": "not found"})
+
+    def memes(self, event: dict) -> dict:
+        lang = (event.get("queryStringParameters") or {}).get("lang", "en")
+        if lang not in MESSAGES_BY_LANG:
+            return _response(400, {"error": "lang must be en, zh or zh-hans"})
+        memes = [in_script(m, lang) for m in self.pool.approved(pool_lang(lang))]
+        return _response(200, memes, {"cache-control": f"public, max-age={POOL_CACHE_SECONDS}"})
 
     def vote(self, event: dict, ip: str) -> dict:
         try:
@@ -108,13 +142,20 @@ class Api:
         # The public picks a theme from the fixed list; nothing a visitor types reaches
         # the model.
         try:
-            theme = self.themes[json.loads(_body(event))["theme"]]
-        except (ValueError, KeyError, TypeError):
+            data = json.loads(_body(event))
+            lang = data.get("lang", "en")
+            theme = self.themes[pool_lang(lang)][data["theme"]]
+            if lang not in MESSAGES_BY_LANG:
+                raise KeyError(lang)
+        except (ValueError, KeyError, TypeError, AttributeError):
             return _response(400, {"error": 'send {"theme": "<id of a listed theme>"}'})
 
         if not self.limits.allow(ip):
-            return _fallback("limit")
-        result = write_meme(as_topic(theme), self.get_llm(), self.templates)
+            return _fallback("limit", lang)
+        result = write_meme(as_topic(theme), self.get_llm(), self.templates, pool_lang(lang))
         if "fallback" in result:
-            return _fallback(result["fallback"])
-        return _response(200, result)
+            return _fallback(result["fallback"], lang)
+        if self.feedback is not None:
+            # Held outside the pool; its id lets the requester's thumbs up nominate it.
+            result = {"id": self.feedback.keep_fresh(result, pool_lang(lang)), **result}
+        return _response(200, in_script(result, lang))

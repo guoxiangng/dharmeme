@@ -159,16 +159,21 @@ def test_chinesememe_is_simplified_and_chinesememe_tw_is_traditional():
     assert [b["text"] for b in buttons[1:]] == [t["label"] for t in THEMES_ZH]
 
 
-def test_tapping_a_theme_writes_in_that_script():
+def test_chinese_is_always_written_in_traditional_and_shown_in_the_script_asked_for():
     llm = StubLLM(GOOD_ZH, GOOD_ZH)
     bot, telegram, _ = make_bot(llm)
     bot.handle(tap("zh:nianfo"))
     bot.handle(tap("zs:nianfo"))
     trad = next(t for t in THEMES_ZH if t["id"] == "nianfo")
-    simp = next(t for t in THEMES_HANS if t["id"] == "nianfo")
-    assert llm.calls == [f"主題: {as_topic(trad)}", f"主题: {as_topic(simp)}"]
+    assert llm.calls == [f"主題: {as_topic(trad)}"] * 2  # one source for both scripts
     assert [s[0] for s in telegram.sent] == ["photo", "photo"]
-    assert telegram.markups == [None, None]  # fresh memes are not in the pool: no votes
+    assert telegram.sent[0][2] != telegram.sent[1][2]  # drawn in two different scripts
+    # A fresh meme gets thumbs only (no Report): it is not in the pool yet.
+    assert [[b["text"] for b in m["inline_keyboard"][0]] for m in telegram.markups] == [
+        ["👍", "👎"], ["👍", "👎"]]
+    held = bot.feedback.store.items("fresh")
+    assert len(held) == 2 and all(h["lang"] == "zh" and h["slots"] == GOOD_ZH["slots"]
+                                  for h in held)  # stored in Traditional either way
 
 
 def test_random_serves_the_vetted_chinese_pool_without_the_llm():
@@ -202,7 +207,7 @@ def test_random_writes_a_fresh_one_while_the_chinese_pool_is_empty():
     llm = StubLLM(GOOD_ZH)
     bot, telegram, _ = make_bot(llm, pool_memes=[POOL_EN])
     bot.handle(tap("zs:random"))
-    assert len(llm.calls) == 1 and llm.calls[0].startswith("主题: ")
+    assert len(llm.calls) == 1 and llm.calls[0].startswith("主題: ")
 
 
 def test_the_pools_are_separate():

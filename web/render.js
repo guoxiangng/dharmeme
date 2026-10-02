@@ -5,6 +5,57 @@ export const FONT_FAMILY = "Anton";
 const LINE_HEIGHT = 1.15; // line advance as a multiple of the font size
 const PAD = 0.04; // inner padding, as a fraction of the box's smaller side
 const ELLIPSIS = "…";
+// Chinese, Japanese and Korean characters, including their punctuation and full-width forms.
+const CJK = /[⺀-鿿豈-﫿＀-￯]/;
+const NO_LINE_START = "，。、！？；：」』）》〉…";
+// Anton has no Chinese glyphs, so text with Chinese in it is drawn with the device's own
+// heavy Chinese font: Simplified ("sc") or Traditional ("tc") faces first.
+const CJK_FONTS = {
+  sc: '"Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Heiti SC", "Source Han Sans SC", sans-serif',
+  tc: '"Noto Sans TC", "PingFang TC", "Microsoft JhengHei", "Heiti TC", "Source Han Sans TC", sans-serif',
+};
+
+export function hasCjk(text) {
+  return CJK.test(text);
+}
+
+// The CSS font for drawing `text` at `size`.
+export function fontFor(text, size, script = "sc") {
+  return hasCjk(text)
+    ? `900 ${size}px ${CJK_FONTS[script] || CJK_FONTS.sc}`
+    : `${size}px ${FONT_FAMILY}, Impact, "Arial Black", sans-serif`;
+}
+
+// The units a line may break between, each with whether a space came before it. A Latin
+// word is one unit. Chinese has no spaces, so each character is its own unit; closing
+// punctuation stays glued to the character before it, so no line starts with it.
+// Keep in step with tokens() in src/dharmeme/render.py.
+export function tokens(para) {
+  const out = [];
+  let space = false;
+  let latinOpen = false;
+  for (const ch of para) {
+    if (/\s/.test(ch)) {
+      space = true;
+      latinOpen = false;
+    } else if (CJK.test(ch)) {
+      if (NO_LINE_START.includes(ch) && out.length && !space) {
+        out[out.length - 1].text += ch;
+      } else {
+        out.push({ text: ch, space });
+      }
+      space = false;
+      latinOpen = false;
+    } else if (latinOpen) {
+      out[out.length - 1].text += ch;
+    } else {
+      out.push({ text: ch, space });
+      space = false;
+      latinOpen = true;
+    }
+  }
+  return out;
+}
 
 // Break text into lines no wider than maxWidth. Words wider than a whole line are split
 // by character, so nothing can overflow sideways.
@@ -12,8 +63,8 @@ export function wrap(measure, text, size, maxWidth) {
   const lines = [];
   for (const para of String(text).split("\n")) {
     let line = "";
-    for (const word of para.split(/\s+/).filter(Boolean)) {
-      const candidate = line ? `${line} ${word}` : word;
+    for (const { text: word, space } of tokens(para)) {
+      const candidate = line ? `${line}${space ? " " : ""}${word}` : word;
       if (measure(candidate, size) <= maxWidth) {
         line = candidate;
         continue;
@@ -40,7 +91,7 @@ export function wrap(measure, text, size, maxWidth) {
 // Returns {fontSize, lines, lineHeight, truncated}.
 export function fitText(measure, text, width, height, { maxSize, minSize = 12 } = {}) {
   const max = Math.max(minSize, Math.floor(maxSize ?? height / LINE_HEIGHT));
-  const words = String(text).split(/\s+/).filter(Boolean);
+  const words = String(text).split("\n").flatMap((para) => tokens(para).map((t) => t.text));
   for (let size = max; size >= minSize; size--) {
     if (size > minSize && words.some((word) => measure(word, size) > width)) continue;
     const lines = wrap(measure, text, size, width);
@@ -89,7 +140,8 @@ export function slotRect(slot, imgW, imgH) {
 
 // Draw the meme. `image` is a loaded HTMLImageElement, or null to draw a placeholder
 // (used while the real template images are still missing). Sizes the canvas to the image.
-export function renderMeme(canvas, template, slots, image, { debug = false } = {}) {
+// `script` picks the Chinese font family: "sc" (Simplified) or "tc" (Traditional).
+export function renderMeme(canvas, template, slots, image, { debug = false, script = "sc" } = {}) {
   checkSlots(template, slots);
   const [w, h] = image
     ? [image.naturalWidth, image.naturalHeight]
@@ -104,10 +156,6 @@ export function renderMeme(canvas, template, slots, image, { debug = false } = {
     drawPlaceholder(ctx, template, w, h);
   }
 
-  const measure = (text, size) => {
-    ctx.font = `${size}px ${FONT_FAMILY}, Impact, "Arial Black", sans-serif`;
-    return ctx.measureText(text).width;
-  };
   const minSize = Math.max(12, Math.round(h * 0.03));
 
   for (const slot of template.slots) {
@@ -124,15 +172,21 @@ export function renderMeme(canvas, template, slots, image, { debug = false } = {
     const raw = slots[slot.name].trim();
     if (!raw) continue;
     const text = style.uppercase ? raw.toUpperCase() : raw;
+    // One font for the whole slot, chosen by whether its text has any Chinese in it.
+    const font = (size) => fontFor(text, size, script);
+    const measure = (part, size) => {
+      ctx.font = font(size);
+      return ctx.measureText(part).width;
+    };
     const fit = fitText(measure, text, rect.w, rect.h, { minSize });
-    drawLines(ctx, fit, rect, style);
+    drawLines(ctx, fit, rect, style, font(fit.fontSize));
   }
 }
 
-function drawLines(ctx, fit, rect, style) {
+function drawLines(ctx, fit, rect, style, font) {
   const { fontSize, lines, lineHeight } = fit;
   ctx.save();
-  ctx.font = `${fontSize}px ${FONT_FAMILY}, Impact, "Arial Black", sans-serif`;
+  ctx.font = font;
   ctx.textAlign = style.align;
   ctx.textBaseline = "middle";
   ctx.lineJoin = "round";

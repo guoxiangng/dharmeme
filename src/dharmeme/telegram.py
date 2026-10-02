@@ -16,7 +16,7 @@ import random
 import urllib.request
 import uuid
 
-from .api import MESSAGES
+from .api import MESSAGES, MESSAGES_HANS, MESSAGES_ZH, pool_lang
 from .feedback import weight
 from .prompt import HANS, TOPIC_MAX, to_simplified, write_meme
 from .themes import as_topic
@@ -31,16 +31,6 @@ HELP = (
 )
 PICK = "Pick a theme:"
 RANDOM_ZH = "random"  # the "any" button in a Chinese list: a meme from the Chinese pool
-MESSAGES_ZH = {
-    "limit": "今天的梗圖發完了。諸行無常，明天再來。",
-    "declined": "這個題目，還是保持聖默然吧。",
-    "error": "剛剛打妄想了，請再試一次。",
-}
-MESSAGES_HANS = {
-    "limit": "今天的梗图发完了。诸行无常，明天再来。",
-    "declined": "这个题目，还是保持圣默然吧。",
-    "error": "刚刚打妄想了，请再试一次。",
-}
 # Callback data is a 3-character prefix followed by a meme id or a theme id.
 APPROVE, REJECT = "ok:", "no:"  # the owner's buttons
 UP, DOWN, REPORT = "up:", "dn:", "rp:"  # everyone's buttons under a pool meme
@@ -216,7 +206,10 @@ class Bot:
         self.answer(query, note)
         if theme and chat_id is not None:
             voter = f"tg-{(query.get('from') or {}).get('id')}"
-            self.send_fresh(chat_id, as_topic(theme), voter, lang)
+            # Chinese is always written from the Traditional theme, whatever the script
+            # it is shown in.
+            source = self.themes[pool_lang(lang)].get(theme_id, theme)
+            self.send_fresh(chat_id, as_topic(source), voter, lang)
 
     def handle_vote(self, query: dict, kind: str, meme_id: str) -> None:
         """Thumbs up, thumbs down or Report, from anyone."""
@@ -226,8 +219,10 @@ class Bot:
         else:
             result = self.feedback.vote(voter, meme_id, kind)
             text = {"ok": "Reported. Thank you." if kind == "report" else "Thanks!",
+                    "nominated": "Thanks! Sent to the owner; if approved it joins the pool.",
+                    "added": "Added to the pool.",
                     "already": "You already did that for this one.",
-                    "unknown": "That meme is no longer in the pool."}[result]
+                    "unknown": "That meme is no longer around."}[result]
         self.answer(query, text)
 
     def handle_decision(self, query: dict, prefix: str, meme_id: str) -> None:
@@ -283,10 +278,13 @@ class Bot:
 
     def send(self, chat_id: int, meme: dict, caption: str = "", lang: str = "en") -> None:
         markup = None
-        if self.feedback is not None and "id" in meme:  # a pool meme; fresh memes have no id
+        if self.feedback is not None and "id" in meme:
+            # A pool meme gets Report too. A fresh themed meme only gets the thumbs: a
+            # thumbs up from the person it was written for nominates it for the pool.
             report = CHINESE[lang]["report"] if lang in CHINESE else "Report"
+            choices = [("👍", UP), ("👎", DOWN)] + ([] if meme.get("fresh") else [(report, REPORT)])
             buttons = [{"text": label, "callback_data": f"{prefix}{meme['id']}"}
-                       for label, prefix in (("👍", UP), ("👎", DOWN), (report, REPORT))]
+                       for label, prefix in choices]
             markup = {"inline_keyboard": [buttons]}
         self.telegram.send_photo(chat_id, self.draw(meme, lang), caption, markup)
 
@@ -311,9 +309,13 @@ class Bot:
         Any fallback (limit reached, declined, error) is a short message with a meme from
         the pool of that language, or the message alone if that pool is empty.
         """
+        written_in = pool_lang(lang)
         result = ({"fallback": "limit"} if not self.limits.allow(voter) else
-                  write_meme(topic, self.get_llm(), list(self.templates.values()), lang))
+                  write_meme(topic, self.get_llm(), list(self.templates.values()), written_in))
         if "fallback" not in result:
+            if self.feedback is not None:
+                result = {**result, "fresh": True,
+                          "id": self.feedback.keep_fresh(result, written_in)}
             self.send(chat_id, result, lang=lang)
             return
         if lang not in CHINESE:

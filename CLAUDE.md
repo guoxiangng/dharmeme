@@ -33,10 +33,17 @@ These came out of specific decisions. Don't relitigate them; ask before going ag
 ## Things that are easy to get wrong
 
 - **Chinese is stored once, in Traditional** (`lang: "zh"`), and converted to Simplified
-  on the way out with OpenCC. Write and store Traditional; never store Simplified.
-- **The seed is not the pool.** `seed/memes.jsonl` only supplies memes the table has never
-  seen. To remove memes for good: `pool_admin.py write-seed`, commit, deploy, and only then
-  `pool_admin.py delete-rejected`. Otherwise the next cold start adds them back.
+  on the way out with OpenCC. Always generate and store Traditional, even for a Simplified
+  request; never store Simplified (converting back is ambiguous).
+- **The database is the pool; the seed is a bootstrap.** Approved memes now come from the
+  daily batch and from visitors' nominations as well, so `seed/memes.jsonl` is not a copy
+  of the pool and need not be kept in step. It matters only for an empty table and for the
+  site's offline fallback.
+- **The portfolio page does not link to this repository**, at the owner's request. Don't
+  add a source link there.
+- **Deleting a seed meme from the table brings it back.** The seed supplies any meme the
+  table has never seen. To remove memes for good: `pool_admin.py write-seed`, commit,
+  deploy, and only then `pool_admin.py delete-rejected`.
 - **Generated ids carry the time to the second.** Two runs in one minute once overwrote
   each other when ids were per-minute.
 - **A meme is sent to the owner once.** `asked` marks it. `send_pending` only picks
@@ -44,7 +51,8 @@ These came out of specific decisions. Don't relitigate them; ask before going ag
 - **Text boxes belong to one exact image.** The site build fails if an image is missing or
   not the `size` in the catalog. Changing an image means re-checking its boxes.
 - **`web/render.js` and `src/dharmeme/render.py` implement the same fitting rules.** Change
-  both. Only the Python one handles Chinese; the website has no Chinese yet.
+  both. The Python one draws Chinese with the bundled Noto fonts; the website uses the
+  device's own Chinese font.
 - **The model counts characters badly.** About a third of first replies overrun a slot's
   limit; the retry tells it what was wrong. A one-word free topic used to make it ask a
   question back, which is why the prompt says it is one-shot.
@@ -96,12 +104,9 @@ point-in-time restore into a temporary table.
 
 ## Open items
 
-- **Themed memes don't join the pool.** Proposed and awaiting the owner's decision: the
-  requester's 👍 nominates a themed meme as `pending` for the owner's approval.
-- **Native Chinese formats** (熊猫头 reaction images) are wanted but unsourced; imgflip
-  doesn't carry them. The owner would need to supply blank images.
-- **No Chinese on the website.** It needs character-based wrapping in `web/render.js` and
-  a Chinese font.
+- **Native Chinese formats** (熊猫头 reaction images) are wanted but unsourced. imgflip
+  doesn't carry them: its "panda" templates are ordinary pandas or people in costume. The
+  owner would need to supply blank images, or a site with direct image links.
 - **Slow first reply.** After a quiet spell the bot takes around 20 seconds, mostly loading
   two large Chinese fonts. One font for both scripts would roughly halve the package.
 - **The bot's `/random` can repeat**; the website deals a full pass before repeating.

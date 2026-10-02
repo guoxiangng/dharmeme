@@ -66,6 +66,10 @@ label { display: block; font-weight: 600; margin: 0.75rem 0 0.25rem; }
 
 .themes-title { font-size: 1rem; font-weight: 600; margin: 0.5rem 0 0.6rem; }
 .themes { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.zh-title { display: flex; align-items: baseline; gap: 0.75rem; margin-top: 1.5rem; }
+.script-switch button.link { font-size: 0.9rem; text-decoration: none; padding: 0.1rem 0.3rem; }
+.script-switch button.chosen { color: var(--accent); font-weight: 600; text-decoration: underline; }
+.row { display: flex; gap: 0.5rem; margin-bottom: 0.6rem; }
 button.chip {
   color: var(--ink);
   background: var(--bg);

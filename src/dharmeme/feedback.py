@@ -4,12 +4,18 @@ Votes never change how often a meme is shown: every meme appears once per pass o
 pool. They only nudge the order within a pass, by up-rate rather than by count, and only
 once a meme has enough votes, so nothing snowballs while the pool is young. A meme is
 never hidden automatically: a report, or a poor rating, sends it to the owner to decide.
+
+A themed meme, written for one person, is held outside the pool for a few days. That
+person's thumbs up nominates it; it then waits as pending for the owner's approval.
 """
+import secrets
 from datetime import datetime, timedelta, timezone
 
 from .pool import PK as MEME
 
 VOTE = "vote"
+FRESH = "fresh"     # themed memes awaiting their requester's vote; not part of the pool
+FRESH_DAYS = 7
 KINDS = {"up": "up", "down": "down", "report": "reports"}  # kind -> counter on the meme
 MIN_VOTES = 10      # below this a meme counts as unrated
 REVIEW_VOTES = 20   # at this many votes...
@@ -33,13 +39,47 @@ def weight(meme: dict) -> float:
 
 
 class Feedback:
-    def __init__(self, store, ask_owner=None, now=lambda: datetime.now(timezone.utc)) -> None:
+    def __init__(self, store, ask_owner=None, now=lambda: datetime.now(timezone.utc),
+                 nominate=None, owner_voter: str | None = None) -> None:
         self.store = store
         self.ask_owner = ask_owner or (lambda meme, reason: None)  # owner's keep/remove prompt
+        self.nominate = nominate or (lambda meme: None)  # owner's approve/reject prompt
+        self.owner_voter = owner_voter  # the owner's own thumbs up needs no second approval
         self.now = now
 
+    def keep_fresh(self, meme: dict, lang: str = "en") -> str:
+        """Hold a just-written themed meme for a few days, so the person it was written
+        for can vote on it. Returns its id. It is not in the pool and is never served."""
+        now = self.now()
+        meme_id = f"t-{now:%Y%m%d-%H%M%S}-{secrets.token_hex(3)}"
+        self.store.put({"pk": FRESH, "sk": meme_id, "template_id": meme["template_id"],
+                        "slots": meme["slots"], "lang": lang, "created": f"{now:%Y-%m-%d}",
+                        "expires": int((now + timedelta(days=FRESH_DAYS)).timestamp())})
+        return meme_id
+
+    def _vote_on_fresh(self, voter: str, meme_id: str, kind: str) -> str:
+        """A vote on a themed meme. Only the person it was written for has its id, so a
+        thumbs up from them nominates it: it becomes pending and goes to the owner, who
+        decides. A thumbs down just discards it."""
+        fresh = self.store.get(FRESH, meme_id)
+        if fresh is None:
+            return "unknown"
+        self.store.delete(FRESH, meme_id)
+        if kind != "up":
+            return "ok"
+        by_owner = self.owner_voter is not None and voter == self.owner_voter
+        entry = {"id": meme_id, "template_id": fresh["template_id"], "slots": fresh["slots"],
+                 "status": "approved" if by_owner else "pending", "created": fresh["created"],
+                 "lang": fresh.get("lang", "en"), "source": "theme", "up": 1}
+        self.store.put({"pk": MEME, "sk": meme_id, **entry})
+        if by_owner:
+            return "added"
+        self.nominate(entry)
+        return "nominated"
+
     def vote(self, voter: str, meme_id: str, kind: str) -> str:
-        """Record one vote. Returns "ok", "already" (this voter has voted) or "unknown"."""
+        """Record one vote. Returns "ok", "already" (this voter has voted), "unknown",
+        or for a themed meme "nominated" (sent to the owner) or "added" (the owner's own)."""
         expires = int((self.now() + timedelta(days=KEEP_DAYS)).timestamp())
         # A voter gets one thumb per meme, and separately one report per meme.
         slot = "report" if kind == "report" else "thumb"
@@ -48,7 +88,7 @@ class Feedback:
             return "already"
         item = self.store.add(MEME, meme_id, KINDS[kind])
         if item is None:
-            return "unknown"
+            return self._vote_on_fresh(voter, meme_id, kind)
         up, down = int(item.get("up", 0)), int(item.get("down", 0))
         meme = {"id": meme_id, "template_id": item["template_id"], "slots": item["slots"],
                 "lang": item.get("lang", "en")}

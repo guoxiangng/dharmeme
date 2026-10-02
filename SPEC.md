@@ -106,6 +106,11 @@ have no buttons). `POST /vote {"id", "vote": "up"|"down"|"report"}`; no LLM call
 - **Nothing is hidden automatically.** The first report of a meme, or a meme reaching 20
   votes with an up-rate under 30%, is sent once to the owner's chat with Keep and Remove
   buttons. Until the owner decides, it stays in the pool.
+- **Themed memes can be nominated.** A meme written for a theme is held outside the pool
+  (`pk = "fresh"`, deleted after 7 days) and returned with an id; under it the requester
+  sees 👍 and 👎. Only they have the id, so their 👍 nominates it: it becomes a `pending`
+  pool meme and goes to the owner's chat for Approve or Reject, like the daily batch. A 👎
+  discards it. The owner's own 👍 adds it as `approved` directly.
 
 ## 5. Theme feature — `POST /meme` → `write_meme(topic) -> {template_id, slots}`
 
@@ -148,9 +153,12 @@ Validation: `template_id` exists, slot names exactly match, each text is non-emp
 
 The user never sees an error; the worst case is a random meme.
 
-## 5a. Chinese — `/chinesememe` and `/chinesememe_tw` (bot only)
+## 5a. Chinese — in the bot and on the website
 
-A separate feature with its own context, not a translation and not a language toggle.
+A separate feature with its own context, not a translation. In the bot it is the commands
+`/chineserandom`, `/chinesememe` and their `_tw` forms; on the website it is a 中文 section
+under the English themes, with a 简体 / 繁體 switch, a 随机一张 button and the Chinese
+themes. The API takes `lang` = `zh` or `zh-hans` on `GET /memes` and `POST /meme`.
 `themes/zh.yaml` lists themes from Han Chinese Mahayana and Taiwan's humanistic Buddhism
 (念佛, 吃素, 隨緣, 做義工, 共修…). The command shows them as buttons; a tap writes a fresh
 meme with the Chinese prompt (`TONE_ZH`, `OUTPUT_ZH` in `prompt.py`), under the same
@@ -158,8 +166,10 @@ limits as `/meme`.
 
 - **Two scripts, one content.** `/chinesememe` is Simplified (`zh-hans`),
   `/chinesememe_tw` is Traditional (`zh`). Everything Chinese is written and stored once,
-  in Traditional; Simplified is that text converted character by character (OpenCC
-  `t2s`): the themes, the prompt, and every caption. The wording and context are the same.
+  in Traditional: the model is always given the Traditional theme and prompt, whichever
+  script was asked for. Simplified is that text converted character by character (OpenCC
+  `t2s`) on the way out: theme labels and every caption. The wording and context are the
+  same.
 - **Chinese pool.** Pool memes carry `lang` (absent = English). `/chineserandom` and
   `/chineserandom_tw` send an approved Chinese meme straight away with no LLM call, in
   that script, with the usual vote buttons; the 随机一张 / 隨機一張 button at the top of
@@ -170,8 +180,9 @@ limits as `/meme`.
   is about twice as wide).
 - `render.py` breaks lines between Chinese characters, keeps Latin words whole, never
   starts a line with closing punctuation, and draws text containing Chinese with Noto
-  Sans TC or SC at weight 900 (Anton has no Chinese glyphs). `web/render.js` does not do
-  this yet; Chinese is not on the website.
+  Sans TC or SC at weight 900 (Anton has no Chinese glyphs). `web/render.js` follows the
+  same rules but uses the device's own heavy Chinese font, to avoid a font download of
+  several megabytes.
 - `one-does-not-simply` is left out: it depends on a fixed English first line.
 
 ## 6. LLM — same pattern as hakigains

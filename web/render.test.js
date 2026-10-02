@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { checkSlots, fitText, slotRect, wrap } from "./render.js";
+import { checkSlots, fitText, fontFor, hasCjk, slotRect, tokens, wrap } from "./render.js";
 
 // Monospace stand-in for canvas measureText: every character is half the font size wide.
 const measure = (text, size) => text.length * size * 0.5;
@@ -41,6 +41,35 @@ test("the font shrinks to keep a long word whole instead of splitting it", () =>
   assert.ok(fit.lines.includes("attachment"));
   assert.equal(fit.fontSize, 40);
   assert.ok(fitsInside(fit, 200, 400));
+});
+
+// Chinese: every character one font-size wide, like a square glyph.
+const square = (text, size) => text.length * size;
+
+test("Chinese breaks between characters and Latin words stay whole", () => {
+  assert.deepEqual(tokens("放下執著").map((t) => t.text), ["放", "下", "執", "著"]);
+  assert.deepEqual(tokens("Me 說 OK"), [
+    { text: "Me", space: false }, { text: "說", space: true }, { text: "OK", space: true }]);
+  assert.deepEqual(wrap(square, "今天一定專心念佛", 10, 40), ["今天一定", "專心念佛"]);
+});
+
+test("no line starts with closing punctuation", () => {
+  assert.deepEqual(wrap(square, "念佛，打坐。", 10, 30), ["念佛，", "打坐。"]);
+  assert.deepEqual(wrap(square, "念佛，打坐。", 10, 20), ["念", "佛，", "打", "坐。"]);
+});
+
+test("Chinese shrinks to fit without being cut", () => {
+  const fit = fitText(square, "嘴上說放下了轉頭又撿回來", 60, 60);
+  assert.equal(fit.truncated, false);
+  assert.equal(fit.lines.join(""), "嘴上說放下了轉頭又撿回來");
+});
+
+test("text with Chinese gets a Chinese font for its script, Latin text gets Anton", () => {
+  assert.equal(hasCjk("放下"), true);
+  assert.equal(hasCjk("Letting go"), false);
+  assert.match(fontFor("Letting go", 40), /^40px Anton/);
+  assert.match(fontFor("放下", 40, "sc"), /^900 40px "Noto Sans SC"/);
+  assert.match(fontFor("放下", 40, "tc"), /^900 40px "Noto Sans TC"/);
 });
 
 test("a word wider than the box is split instead of overflowing", () => {
