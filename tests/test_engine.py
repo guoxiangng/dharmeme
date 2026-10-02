@@ -58,6 +58,20 @@ def test_system_prompt_lists_every_template_and_slot_limit():
     assert "rejected (max 70 chars)" in prompt
 
 
+def test_each_topic_is_offered_a_random_few_templates():
+    class Recorder(StubLLM):
+        def complete(self, system, user, max_tokens=None):
+            self.systems = getattr(self, "systems", []) + [system]
+            return super().complete(system, user, max_tokens)
+
+    llm = Recorder(*[GOOD] * 20)
+    for _ in range(20):
+        write_meme("x", llm, TEMPLATES)
+    offered = [{t["id"] for t in TEMPLATES if f"- {t['id']}:" in s} for s in llm.systems]
+    assert all(len(ids) == 6 for ids in offered)
+    assert len(set().union(*offered)) > 15  # different templates from one topic to the next
+
+
 def test_validate_rejects_bad_memes():
     assert validate(GOOD, TEMPLATES) == GOOD
     for bad in [
@@ -75,7 +89,7 @@ def test_validate_rejects_bad_memes():
 def test_valid_reply_is_returned():
     llm = StubLLM(GOOD)
     assert write_meme("meditation", llm, TEMPLATES) == GOOD
-    assert llm.calls == ["meditation"]
+    assert llm.calls == ["Topic: meditation"]
 
 
 def test_reply_wrapped_in_a_code_fence_is_accepted():
@@ -96,7 +110,7 @@ def test_the_retry_tells_the_model_what_was_wrong():
     too_long = {"template_id": "this-is-fine", "slots": {"chaos": "x" * 53}}
     llm = StubLLM(too_long, {"template_id": "this-is-fine", "slots": {"chaos": "My inbox"}})
     assert write_meme("my inbox", llm, TEMPLATES)["slots"] == {"chaos": "My inbox"}
-    assert llm.calls[0] == "my inbox"
+    assert llm.calls[0] == "Topic: my inbox"
     assert "chaos is 53 chars, max 50" in llm.calls[1]
 
 

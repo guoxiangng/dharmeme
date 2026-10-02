@@ -92,7 +92,7 @@ def test_topic_by_command_or_plain_text_sends_the_llm_meme():
     bot, telegram = make_bot(llm)
     bot.handle(update("/meme my inbox"))
     bot.handle(update("my inbox"))
-    assert llm.calls == ["my inbox", "my inbox"]
+    assert llm.calls == ["Topic: my inbox", "Topic: my inbox"]
     assert [s[0] for s in telegram.sent] == ["photo", "photo"]
 
 
