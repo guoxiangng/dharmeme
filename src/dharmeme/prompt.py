@@ -5,6 +5,7 @@
 """
 import json
 import random
+from functools import cache
 
 TOPIC_MAX = 200
 ATTEMPTS = 2  # one retry after invalid JSON or a meme that fails validation
@@ -92,20 +93,47 @@ LANGS = {
 }
 
 
+HANS = "zh-hans"  # the same Chinese voice, written in Simplified characters
+
+
+@cache
+def _converter():
+    from opencc import OpenCC  # pure Python; only loaded when Simplified is asked for
+
+    return OpenCC("t2s")
+
+
+def to_simplified(text: str) -> str:
+    """Traditional to Simplified characters; wording and context are left as they are."""
+    return _converter().convert(text)
+
+
+@cache
+def voice(lang: str) -> dict:
+    """The prompt texts and limits for a language. Simplified Chinese is the Chinese
+    voice with every character converted, asking for Simplified output."""
+    if lang != HANS:
+        return LANGS[lang]
+    zh = LANGS["zh"]
+    output = zh["output"].replace("繁體中文、台灣用語", "簡體中文")
+    return {**zh, **{key: to_simplified(text) for key, text in
+                     {"tone": zh["tone"], "output": output, "templates": zh["templates"],
+                      "max": zh["max"], "topic": zh["topic"]}.items()}}
+
+
 class MemeError(ValueError):
     pass
 
 
 def system_prompt(templates: list[dict], lang: str = "en") -> str:
-    voice = LANGS[lang]
+    v = voice(lang)
     lines = []
     for t in templates:
         slots = ", ".join(
-            f"{s['name']} ({voice['max'].format(n=voice['limit'](s['max_chars']))})"
+            f"{s['name']} ({v['max'].format(n=v['limit'](s['max_chars']))})"
             for s in t["slots"])
         lines.append(f"- {t['id']}: {t['format']}\n  slots: {slots}")
-    return (f"{voice['tone']}\n\n{voice['templates']}:\n" + "\n".join(lines)
-            + f"\n\n{voice['output']}")
+    return f"{v['tone']}\n\n{v['templates']}:\n" + "\n".join(lines) + f"\n\n{v['output']}"
 
 
 def validate(data, templates: list[dict], lang: str = "en") -> dict:
@@ -116,7 +144,7 @@ def validate(data, templates: list[dict], lang: str = "en") -> dict:
     if template is None:
         raise MemeError(f"unknown template {data.get('template_id')!r}")
     slots = data.get("slots")
-    limits = {s["name"]: LANGS[lang]["limit"](s["max_chars"]) for s in template["slots"]}
+    limits = {s["name"]: voice(lang)["limit"](s["max_chars"]) for s in template["slots"]}
     if not isinstance(slots, dict) or sorted(slots) != sorted(limits):
         raise MemeError(f"slots must be {sorted(limits)}")
     for name, text in slots.items():
@@ -139,13 +167,13 @@ def _parse(text: str):
 
 
 def write_meme(topic: str, llm, templates: list[dict], lang: str = "en") -> dict:
-    voice = LANGS[lang]
-    templates = [t for t in templates if t["id"] not in voice["skip"]]
+    v = voice(lang)
+    templates = [t for t in templates if t["id"] not in v["skip"]]
     # Offered a random few, the model can't settle on one favourite template for every
     # topic, and the prompt is a fifth of the size.
     offered = random.sample(templates, OFFER) if len(templates) > OFFER else templates
     system = system_prompt(offered, lang)
-    label = voice["topic"]
+    label = v["topic"]
     user = f"{label}: {topic}"
     for _ in range(ATTEMPTS):
         try:
@@ -159,7 +187,10 @@ def write_meme(topic: str, llm, templates: list[dict], lang: str = "en") -> dict
             data = _parse(reply.text)
             if isinstance(data, dict) and data.get("declined"):
                 return {"fallback": "declined"}
-            return validate(data, templates, lang)
+            meme = validate(data, templates, lang)
+            if lang == HANS:  # a stray Traditional character never reaches the reader
+                meme["slots"] = {k: to_simplified(t) for k, t in meme["slots"].items()}
+            return meme
         except MemeError as exc:
             print(f"prompt: rejected reply: {exc}")
             # Tell the model what was wrong, so the retry isn't the same mistake again.

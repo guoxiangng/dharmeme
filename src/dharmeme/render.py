@@ -17,7 +17,7 @@ ANCHORS = {"left": "lm", "center": "mm", "right": "rm"}
 # Chinese, Japanese and Korean characters, including their punctuation and full-width forms.
 CJK = re.compile(r"[⺀-鿿豈-﫿＀-￯]")
 NO_LINE_START = "，。、！？；：」』）》〉…"
-CJK_WEIGHT = 900  # Noto Sans TC is a variable font; memes want its heaviest weight
+CJK_WEIGHT = 900  # Noto Sans TC/SC are variable fonts; memes want the heaviest weight
 
 
 def has_cjk(text: str) -> bool:
@@ -96,23 +96,27 @@ def fit_text(measure, text: str, width: float, height: float, min_size: int = 12
 
 
 class Renderer:
-    def __init__(self, images: Path, font: Path, cjk_font: Path | None = None) -> None:
+    def __init__(self, images: Path, font: Path, tc_font: Path | None = None,
+                 sc_font: Path | None = None) -> None:
         self.images = Path(images)
         self.font_path = str(font)
-        self.cjk_font_path = str(cjk_font) if cjk_font else None
+        # Traditional and Simplified text each get the font drawn for that script.
+        self.cjk_paths = {"tc": tc_font and str(tc_font), "sc": sc_font and str(sc_font)}
         self.font = cache(self._load)
 
-    def _load(self, size: int, cjk: bool = False):
-        """Anton for Latin text; Noto Sans TC, at its heaviest, for text with Chinese in it
-        (Anton has no Chinese characters)."""
-        if not (cjk and self.cjk_font_path):
+    def _load(self, size: int, script: str | None = None):
+        """Anton for Latin text; Noto Sans TC or SC, at its heaviest, for text with
+        Chinese in it (Anton has no Chinese characters)."""
+        path = self.cjk_paths.get(script) if script else None
+        if not path:
             return ImageFont.truetype(self.font_path, size)
-        font = ImageFont.truetype(self.cjk_font_path, size)
+        font = ImageFont.truetype(path, size)
         font.set_variation_by_axes([CJK_WEIGHT])
         return font
 
-    def render(self, template: dict, slots: dict) -> bytes:
-        """Draw the meme and return it as JPEG bytes."""
+    def render(self, template: dict, slots: dict, script: str = "tc") -> bytes:
+        """Draw the meme and return it as JPEG bytes. `script` picks the Chinese font:
+        "tc" (Traditional) or "sc" (Simplified)."""
         image = Image.open(self.images / template["image"]).convert("RGB")
         draw = ImageDraw.Draw(image)
         w, h = image.size
@@ -127,7 +131,7 @@ class Renderer:
             pad = PAD * min(bw * w, bh * h)
             left, top = x * w + pad, y * h + pad
             width, height = bw * w - 2 * pad, bh * h - 2 * pad
-            cjk = has_cjk(text)
+            cjk = script if has_cjk(text) else None
             fit = fit_text(lambda t, s: self.font(s, cjk).getlength(t), text, width, height,
                            min_size)
             size = fit["font_size"]

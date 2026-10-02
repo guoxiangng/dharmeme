@@ -11,19 +11,23 @@ class Pool:
     def __init__(self, store) -> None:
         self.store = store
 
-    def approved(self) -> list[dict]:
-        """The memes Random serves, each with its vote counts."""
+    def approved(self, lang: str = "en") -> list[dict]:
+        """The memes Random serves in one language, each with its vote counts.
+
+        A meme without a `lang` is English. Chinese memes are stored once, in
+        Traditional characters, and shown in either script.
+        """
         return [
             {**{k: item[k] for k in FIELDS},
              "up": int(item.get("up", 0)), "down": int(item.get("down", 0))}
             for item in self.store.items(PK)
-            if item["status"] == "approved"
+            if item["status"] == "approved" and item.get("lang", "en") == lang
         ]
 
     def all(self) -> list[dict]:
-        """Every meme, whatever its status."""
-        return [{k: item[k] for k in (*FIELDS, "status", "created")}
-                for item in self.store.items(PK)]
+        """Every meme, whatever its status or language."""
+        return [{**{k: item[k] for k in (*FIELDS, "status", "created")},
+                 "lang": item.get("lang", "en")} for item in self.store.items(PK)]
 
     def add(self, entry: dict) -> None:
         self.store.put({"pk": PK, "sk": entry["id"], **entry})
@@ -45,7 +49,8 @@ class Pool:
 
     def unasked_pending(self) -> list[dict]:
         """Pending memes the owner has not been sent yet."""
-        return [{k: item[k] for k in FIELDS} for item in self.store.items(PK)
+        return [{**{k: item[k] for k in FIELDS}, "lang": item.get("lang", "en")}
+                for item in self.store.items(PK)
                 if item["status"] == "pending" and not item.get("asked")]
 
     def add_missing(self, entries: list[dict]) -> int:

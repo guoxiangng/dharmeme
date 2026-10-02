@@ -67,7 +67,7 @@ Resources:
       Handler: handler.handler
       Runtime: python3.13
       Architectures: [x86_64]
-      Timeout: 120                  # the generator's two calls and its Telegram messages
+      Timeout: 300                  # the generator: four LLM calls and a message per meme
       MemorySize: 1024              # more memory = more CPU; the SDK import is the slow part
       ReservedConcurrentExecutions: 5   # a traffic spike can't fan out
       Environment:

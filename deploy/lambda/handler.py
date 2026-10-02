@@ -18,6 +18,7 @@ HERE = Path(__file__).parent
 TEMPLATES = json.loads((HERE / "catalog.json").read_text(encoding="utf-8"))
 THEMES = json.loads((HERE / "themes.json").read_text(encoding="utf-8"))
 THEMES_ZH = json.loads((HERE / "themes_zh.json").read_text(encoding="utf-8"))
+THEMES_HANS = json.loads((HERE / "themes_zh_hans.json").read_text(encoding="utf-8"))
 get_llm = cache(get_provider)
 
 
@@ -66,10 +67,11 @@ def get_bot():
 
         pool, limits = _engine()
         renderer = Renderer(HERE / "images", HERE / "Anton-Regular.ttf",
-                            HERE / "NotoSansTC.ttf")
+                            HERE / "NotoSansTC.ttf", HERE / "NotoSansSC.ttf")
         owner = os.environ.get("DHARMEME_OWNER_CHAT", "").strip()
         _bot = (Bot(pool, limits, get_llm, TEMPLATES, renderer, TelegramApi(token),
-                    int(owner) if owner else None, _feedback(), THEMES, THEMES_ZH),
+                    int(owner) if owner else None, _feedback(), THEMES, THEMES_ZH,
+                    THEMES_HANS),
                 webhook_secret(token))
     return _bot
 
@@ -113,15 +115,18 @@ def ask_owner(memes: list[dict]) -> int:
     return sent
 
 
-def generate() -> dict:
-    """The daily run (SPEC.md §4). New memes are always pending: nothing generated is
-    published until the owner approves it in their own chat."""
+def generate(langs: tuple[str, ...] = ("en", "zh")) -> dict:
+    """The daily run (SPEC.md §4), once per language: the English pool, and the Chinese
+    pool at half the size. New memes are always pending: nothing generated is published
+    until the owner approves it in their own chat."""
     from dharmeme import generator
 
     pool, _ = _engine()
-    added = generator.run(pool, get_llm(), TEMPLATES,
-                          count=int(os.environ.get("DHARMEME_GENERATE_COUNT", "10")),
-                          status="pending")
+    count = int(os.environ.get("DHARMEME_GENERATE_COUNT", "10"))
+    added = []
+    for lang in langs:
+        added += generator.run(pool, get_llm(), TEMPLATES, status="pending", lang=lang,
+                               count=count if lang == "en" else max(1, count // 2))
     return {"added": [m["id"] for m in added], "sent_to_owner": ask_owner(added)}
 
 
@@ -177,8 +182,8 @@ def handler(event, context):
     if "requestContext" not in event:
         if event.get("admin") == "set_telegram_webhook":
             return set_telegram_webhook(event["url"])
-        if event.get("admin") == "generate":
-            return generate()
+        if event.get("admin") == "generate":  # optional "langs": ["zh"] to run one
+            return generate(tuple(event.get("langs") or ("en", "zh")))
         if event.get("admin") == "send_pending":
             return send_pending(int(event.get("limit", 20)))
         if event.get("admin") == "mark_pending_asked":

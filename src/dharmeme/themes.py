@@ -36,6 +36,14 @@ def load_themes(path: Path | str = THEMES_DIR / "en.yaml") -> list[dict]:
     return themes
 
 
+def simplified(themes: list[dict]) -> list[dict]:
+    """The same themes in Simplified characters: same ids, same content."""
+    from .prompt import to_simplified
+
+    return [{**t, "label": to_simplified(t["label"]), "brief": to_simplified(t["brief"])}
+            for t in themes]
+
+
 def as_topic(theme: dict) -> str:
     """What the model is told when a visitor picks this theme."""
     return f"{theme['label']}. {theme['brief']}"

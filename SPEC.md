@@ -148,21 +148,29 @@ Validation: `template_id` exists, slot names exactly match, each text is non-emp
 
 The user never sees an error; the worst case is a random meme.
 
-## 5a. Chinese — `/chinesememe` (bot only)
+## 5a. Chinese — `/chinesememe` and `/chinesememe_tw` (bot only)
 
 A separate feature with its own context, not a translation and not a language toggle.
-`themes/zh.yaml` lists themes in Traditional Chinese from Han Chinese Mahayana and Taiwan's
-humanistic Buddhism (念佛, 吃素, 隨緣, 做義工, 共修…). `/chinesememe` shows them as buttons,
-plus 隨機一張; a tap writes a fresh meme with the Chinese prompt (`TONE_ZH`, `OUTPUT_ZH` in
-`prompt.py`), under the same limits as `/meme`. There is no Chinese pool yet, so a
-fallback is a Chinese message alone.
+`themes/zh.yaml` lists themes from Han Chinese Mahayana and Taiwan's humanistic Buddhism
+(念佛, 吃素, 隨緣, 做義工, 共修…). The command shows them as buttons; a tap writes a fresh
+meme with the Chinese prompt (`TONE_ZH`, `OUTPUT_ZH` in `prompt.py`), under the same
+limits as `/meme`.
 
-- Captions are Traditional Chinese; a slot holds half as many Chinese characters as its
-  `max_chars` (a Chinese character is about twice as wide).
+- **Two scripts, one content.** `/chinesememe` is Simplified (`zh-hans`),
+  `/chinesememe_tw` is Traditional (`zh`). Everything Chinese is written and stored once,
+  in Traditional; Simplified is that text converted character by character (OpenCC
+  `t2s`): the themes, the prompt, and every caption. The wording and context are the same.
+- **Chinese pool.** Pool memes carry `lang` (absent = English). The 隨機一張 / 随机一张
+  button serves an approved Chinese meme with no LLM call, drawn in the script of the
+  command used, with the usual vote buttons. The daily generator writes a Chinese batch
+  too (half the English count); those wait as pending and go to the owner's chat, shown
+  in Simplified. The website and `/random` serve the English pool only.
+- A slot holds half as many Chinese characters as its `max_chars` (a Chinese character
+  is about twice as wide).
 - `render.py` breaks lines between Chinese characters, keeps Latin words whole, never
-  starts a line with closing punctuation, and draws any text containing Chinese with Noto
-  Sans TC at weight 900 (Anton has no Chinese glyphs). `web/render.js` does not do this
-  yet; Chinese is not on the website.
+  starts a line with closing punctuation, and draws text containing Chinese with Noto
+  Sans TC or SC at weight 900 (Anton has no Chinese glyphs). `web/render.js` does not do
+  this yet; Chinese is not on the website.
 - `one-does-not-simply` is left out: it depends on a fixed English first line.
 
 ## 6. LLM — same pattern as hakigains

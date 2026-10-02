@@ -19,12 +19,13 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from dharmeme.catalog import load_catalog  # noqa: E402
-from dharmeme.themes import THEMES_DIR, load_themes  # noqa: E402
+from dharmeme.themes import THEMES_DIR, load_themes, simplified  # noqa: E402
 
 ZIP = ROOT / "deploy" / "build" / "dharmeme.zip"
 PYTHON_VERSION = "3.13"  # must match Runtime in deploy/sam/template.yaml
 # boto3 is already in the Lambda runtime. Pillow draws the memes for Telegram.
-DEPENDENCIES = ["anthropic", "Pillow"]
+# OpenCC (pure Python) converts Traditional Chinese to Simplified.
+DEPENDENCIES = ["anthropic", "Pillow", "opencc-python-reimplemented"]
 CATALOG_FIELDS = ["id", "name", "image", "format", "slots"]
 
 
@@ -40,9 +41,12 @@ def assemble(out: Path, install: bool = True) -> None:
     (out / "catalog.json").write_text(json.dumps(catalog), encoding="utf-8")
     (out / "themes.json").write_text(json.dumps(load_themes(), ensure_ascii=False),
                                      encoding="utf-8")
-    (out / "themes_zh.json").write_text(
-        json.dumps(load_themes(THEMES_DIR / "zh.yaml"), ensure_ascii=False), encoding="utf-8")
-    shutil.copy2(ROOT / "templates" / "fonts" / "NotoSansTC.ttf", out / "NotoSansTC.ttf")
+    zh = load_themes(THEMES_DIR / "zh.yaml")
+    (out / "themes_zh.json").write_text(json.dumps(zh, ensure_ascii=False), encoding="utf-8")
+    (out / "themes_zh_hans.json").write_text(json.dumps(simplified(zh), ensure_ascii=False),
+                                             encoding="utf-8")
+    for font in ("NotoSansTC.ttf", "NotoSansSC.ttf"):
+        shutil.copy2(ROOT / "templates" / "fonts" / font, out / font)
     if install:
         subprocess.run(
             [sys.executable, "-m", "pip", "install", "--quiet",

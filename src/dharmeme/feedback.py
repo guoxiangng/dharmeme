@@ -50,7 +50,8 @@ class Feedback:
         if item is None:
             return "unknown"
         up, down = int(item.get("up", 0)), int(item.get("down", 0))
-        meme = {"id": meme_id, "template_id": item["template_id"], "slots": item["slots"]}
+        meme = {"id": meme_id, "template_id": item["template_id"], "slots": item["slots"],
+                "lang": item.get("lang", "en")}
         if item["status"] != "approved":
             return "ok"
         if kind == "report" and int(item["reports"]) == 1:

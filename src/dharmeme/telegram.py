@@ -1,7 +1,9 @@
 """Telegram front end over the same engine as the website (SPEC.md §8).
 
-    /random   a meme from the approved pool (no LLM)
-    /meme     a list of themes to tap; the model writes a fresh meme on the one chosen
+    /random           a meme from the approved pool (no LLM)
+    /meme             a list of themes to tap; the model writes a fresh meme on the one chosen
+    /chinesememe      the Chinese feature, in Simplified characters
+    /chinesememe_tw   the same, in Traditional characters
 
 The public picks a theme and never types a topic. Only the owner's chat may send free
 text as a topic. A fresh meme counts against the same limits as the website, per user
@@ -15,33 +17,50 @@ import uuid
 
 from .api import MESSAGES
 from .feedback import weight
-from .prompt import TOPIC_MAX, write_meme
+from .prompt import HANS, TOPIC_MAX, to_simplified, write_meme
 from .themes import as_topic
 
 HELP = (
     "dharmeme: Buddhist memes. All memes are impermanent.\n\n"
     "/random - a random meme\n"
     "/meme - pick a theme and get a fresh one\n"
-    "/chinesememe - 中文梗圖（漢傳佛教、人間佛教）"
+    "/chinesememe - 中文梗图（简体）\n"
+    "/chinesememe_tw - 中文梗圖（繁體）"
 )
 PICK = "Pick a theme:"
-PICK_ZH = "選一個主題："
-RANDOM_ZH = "random"  # the "any theme" button in the Chinese list
-# The Chinese feature has no pool to fall back on, so a fallback is a message alone.
+RANDOM_ZH = "random"  # the "any" button in a Chinese list: a meme from the Chinese pool
 MESSAGES_ZH = {
     "limit": "今天的梗圖發完了。諸行無常，明天再來。",
     "declined": "這個題目，還是保持聖默然吧。",
     "error": "剛剛打妄想了，請再試一次。",
 }
+MESSAGES_HANS = {
+    "limit": "今天的梗图发完了。诸行无常，明天再来。",
+    "declined": "这个题目，还是保持圣默然吧。",
+    "error": "刚刚打妄想了，请再试一次。",
+}
 # Callback data is a 3-character prefix followed by a meme id or a theme id.
 APPROVE, REJECT = "ok:", "no:"  # the owner's buttons
 UP, DOWN, REPORT = "up:", "dn:", "rp:"  # everyone's buttons under a pool meme
 VOTES = {UP: "up", DOWN: "down", REPORT: "report"}
-THEME, THEME_ZH = "th:", "zh:"  # a button in the English / Chinese theme list
+THEME = "th:"  # a button in the English theme list
+# The Chinese feature in its two scripts: same themes, same pool, same context. Chinese
+# is stored once, in Traditional ("zh"); Simplified is that text converted.
+CHINESE = {
+    "zh": {"prefix": "zh:", "script": "tc", "pick": "選一個主題：", "random": "隨機一張",
+           "working": "{label}：參究中…", "gone": "這個主題不在了。", "report": "檢舉",
+           "messages": MESSAGES_ZH},
+    HANS: {"prefix": "zs:", "script": "sc", "pick": "选一个主题：", "random": "随机一张",
+           "working": "{label}：参究中…", "gone": "这个主题不在了。", "report": "举报",
+           "messages": MESSAGES_HANS},
+}
+THEME_PREFIXES = {THEME: "en", **{c["prefix"]: lang for lang, c in CHINESE.items()}}
+OWNER_READS = HANS  # the script pending Chinese memes are shown to the owner in
 COMMANDS = [
     {"command": "random", "description": "A random meme"},
     {"command": "meme", "description": "Pick a theme and get a fresh one"},
-    {"command": "chinesememe", "description": "中文梗圖"},
+    {"command": "chinesememe", "description": "中文梗图（简体）"},
+    {"command": "chinesememe_tw", "description": "中文梗圖（繁體）"},
 ]
 
 
@@ -90,9 +109,13 @@ class TelegramApi:
 class Bot:
     def __init__(self, pool, limits, get_llm, templates: list[dict], renderer, telegram,
                  owner_chat_id: int | None = None, feedback=None,
-                 themes: list[dict] = (), themes_zh: list[dict] = ()) -> None:
-        self.themes = {t["id"]: t for t in themes}
-        self.themes_zh = {t["id"]: t for t in themes_zh}
+                 themes: list[dict] = (), themes_zh: list[dict] = (),
+                 themes_hans: list[dict] = ()) -> None:
+        self.themes = {
+            "en": {t["id"]: t for t in themes},
+            "zh": {t["id"]: t for t in themes_zh},
+            HANS: {t["id"]: t for t in themes_hans},
+        }
         self.pool = pool
         self.limits = limits
         self.get_llm = get_llm
@@ -102,6 +125,15 @@ class Bot:
         self.owner_chat_id = owner_chat_id  # the only chat that is asked to approve memes
         self.feedback = feedback  # None = memes are sent without vote buttons
 
+    def draw(self, meme: dict, lang: str = "en") -> bytes:
+        """The meme as a picture. A Chinese meme is drawn in the script of `lang`."""
+        slots, script = meme["slots"], "tc"
+        if lang in CHINESE:
+            script = CHINESE[lang]["script"]
+            if lang == HANS:
+                slots = {name: to_simplified(text) for name, text in slots.items()}
+        return self.renderer.render(self.templates[meme["template_id"]], slots, script)
+
     def ask_owner(self, meme: dict, caption: str = "Pending. Publish it?",
                   labels: tuple[str, str] = ("Approve", "Reject")) -> None:
         """Send the owner a meme to decide on: two buttons, in their chat only."""
@@ -109,8 +141,8 @@ class Bot:
             return
         buttons = [{"text": label, "callback_data": f"{prefix}{meme['id']}"}
                    for label, prefix in zip(labels, (APPROVE, REJECT))]
-        photo = self.renderer.render(self.templates[meme["template_id"]], meme["slots"])
-        self.telegram.send_photo(self.owner_chat_id, photo, caption,
+        lang = OWNER_READS if meme.get("lang") == "zh" else "en"
+        self.telegram.send_photo(self.owner_chat_id, self.draw(meme, lang), caption,
                                  {"inline_keyboard": [buttons]})
 
     def ask_owner_to_review(self, meme: dict, reason: str) -> None:
@@ -122,8 +154,8 @@ class Bot:
         prefix, meme_id = data[:3], data[3:]
         if prefix in VOTES:
             self.handle_vote(query, VOTES[prefix], meme_id)
-        elif prefix in (THEME, THEME_ZH):
-            self.handle_theme(query, meme_id, "zh" if prefix == THEME_ZH else "en")
+        elif prefix in THEME_PREFIXES:
+            self.handle_theme(query, meme_id, THEME_PREFIXES[prefix])
         else:
             self.handle_decision(query, prefix, meme_id)
 
@@ -137,27 +169,39 @@ class Bot:
             print(f"telegram: could not answer a button press: {exc!r}")
 
     def send_theme_list(self, chat_id: int, lang: str = "en") -> None:
-        if lang == "zh":
-            themes, prefix, text, per_row = self.themes_zh, THEME_ZH, PICK_ZH, 3
-            buttons = [{"text": "隨機一張", "callback_data": f"{THEME_ZH}{RANDOM_ZH}"}]
+        if lang in CHINESE:
+            ui = CHINESE[lang]
+            prefix, text, per_row = ui["prefix"], ui["pick"], 3
+            buttons = [{"text": ui["random"], "callback_data": f"{prefix}{RANDOM_ZH}"}]
         else:
-            themes, prefix, text, per_row = self.themes, THEME, PICK, 2
-            buttons = []
+            prefix, text, per_row, buttons = THEME, PICK, 2, []
         buttons += [{"text": t["label"], "callback_data": f"{prefix}{t['id']}"}
-                    for t in themes.values()]
+                    for t in self.themes[lang].values()]
         rows = [buttons[i : i + per_row] for i in range(0, len(buttons), per_row)]
         self.telegram.call("sendMessage", {"chat_id": chat_id, "text": text,
                                            "reply_markup": {"inline_keyboard": rows}})
 
+    def chinese_pool(self) -> list[dict]:
+        return [m for m in self.pool.approved("zh") if m["template_id"] in self.templates]
+
     def handle_theme(self, query: dict, theme_id: str, lang: str = "en") -> None:
         """A tap on a theme: write a fresh meme on it for the chat the list is in."""
         chat_id = ((query.get("message") or {}).get("chat") or {}).get("id")
-        themes = self.themes_zh if lang == "zh" else self.themes
-        if lang == "zh" and theme_id == RANDOM_ZH and themes:
-            theme_id = random.choice(list(themes))
+        themes = self.themes[lang]
+        if lang in CHINESE and theme_id == RANDOM_ZH:
+            # 隨機一張: a vetted meme from the Chinese pool, with no LLM call. Until the
+            # pool has any, a fresh one on a random theme.
+            pool = self.chinese_pool()
+            if pool and chat_id is not None:
+                self.answer(query, CHINESE[lang]["random"])
+                self.send(chat_id, random.choices(pool, [weight(m) for m in pool])[0],
+                          lang=lang)
+                return
+            theme_id = random.choice(list(themes)) if themes else ""
         theme = themes.get(theme_id)
-        if lang == "zh":
-            note = f"{theme['label']}：參究中…" if theme else "這個主題不在了。"
+        if lang in CHINESE:
+            ui = CHINESE[lang]
+            note = ui["working"].format(label=theme["label"]) if theme else ui["gone"]
         else:
             note = f"{theme['label']}: contemplating…" if theme else "That theme is gone."
         self.answer(query, note)
@@ -212,6 +256,8 @@ class Bot:
         elif command == "/random":
             self.send_random(chat_id)
         elif command == "/chinesememe":
+            self.send_theme_list(chat_id, HANS)
+        elif command == "/chinesememe_tw":
             self.send_theme_list(chat_id, "zh")
         elif command.startswith("/") and command != "/meme":
             self.telegram.send_message(chat_id, HELP)
@@ -224,14 +270,14 @@ class Bot:
             else:
                 self.send_theme_list(chat_id)
 
-    def send(self, chat_id: int, meme: dict, caption: str = "") -> None:
-        photo = self.renderer.render(self.templates[meme["template_id"]], meme["slots"])
+    def send(self, chat_id: int, meme: dict, caption: str = "", lang: str = "en") -> None:
         markup = None
-        if self.feedback is not None and "id" in meme:  # a pool meme; topic memes have no id
+        if self.feedback is not None and "id" in meme:  # a pool meme; fresh memes have no id
+            report = CHINESE[lang]["report"] if lang in CHINESE else "Report"
             buttons = [{"text": label, "callback_data": f"{prefix}{meme['id']}"}
-                       for label, prefix in (("👍", UP), ("👎", DOWN), ("Report", REPORT))]
+                       for label, prefix in (("👍", UP), ("👎", DOWN), (report, REPORT))]
             markup = {"inline_keyboard": [buttons]}
-        self.telegram.send_photo(chat_id, photo, caption, markup)
+        self.telegram.send_photo(chat_id, self.draw(meme, lang), caption, markup)
 
     def send_random(self, chat_id: int, caption: str = "") -> None:
         memes = [m for m in self.pool.approved() if m["template_id"] in self.templates]
@@ -241,20 +287,22 @@ class Bot:
         self.send(chat_id, random.choices(memes, [weight(m) for m in memes])[0], caption)
 
     def send_fresh(self, chat_id: int, topic: str, voter: str, lang: str = "en") -> None:
-        """Have the model write a meme on `topic` and send it, within `voter`'s limit."""
-        if lang == "zh":
-            result = ({"fallback": "limit"} if not self.limits.allow(voter) else
-                      write_meme(topic, self.get_llm(), list(self.templates.values()), "zh"))
-            if "fallback" in result:
-                self.telegram.send_message(chat_id, MESSAGES_ZH[result["fallback"]])
-            else:
-                self.send(chat_id, result)
+        """Have the model write a meme on `topic` and send it, within `voter`'s limit.
+
+        Any fallback (limit reached, declined, error) is a short message with a meme from
+        the pool of that language, or the message alone if that pool is empty.
+        """
+        result = ({"fallback": "limit"} if not self.limits.allow(voter) else
+                  write_meme(topic, self.get_llm(), list(self.templates.values()), lang))
+        if "fallback" not in result:
+            self.send(chat_id, result, lang=lang)
             return
-        if not self.limits.allow(voter):
-            self.send_random(chat_id, MESSAGES["limit"])
-            return
-        result = write_meme(topic, self.get_llm(), list(self.templates.values()))
-        if "fallback" in result:
+        if lang not in CHINESE:
             self.send_random(chat_id, MESSAGES[result["fallback"]])
             return
-        self.send(chat_id, result)
+        message = CHINESE[lang]["messages"][result["fallback"]]
+        pool = self.chinese_pool()
+        if pool:
+            self.send(chat_id, random.choice(pool), message, lang)
+        else:
+            self.telegram.send_message(chat_id, message)
