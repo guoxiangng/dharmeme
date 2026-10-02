@@ -17,6 +17,7 @@ from dharmeme.store import DynamoStore
 HERE = Path(__file__).parent
 TEMPLATES = json.loads((HERE / "catalog.json").read_text(encoding="utf-8"))
 THEMES = json.loads((HERE / "themes.json").read_text(encoding="utf-8"))
+THEMES_ZH = json.loads((HERE / "themes_zh.json").read_text(encoding="utf-8"))
 get_llm = cache(get_provider)
 
 
@@ -64,10 +65,11 @@ def get_bot():
         from dharmeme.telegram import Bot, TelegramApi, webhook_secret
 
         pool, limits = _engine()
-        renderer = Renderer(HERE / "images", HERE / "Anton-Regular.ttf")
+        renderer = Renderer(HERE / "images", HERE / "Anton-Regular.ttf",
+                            HERE / "NotoSansTC.ttf")
         owner = os.environ.get("DHARMEME_OWNER_CHAT", "").strip()
         _bot = (Bot(pool, limits, get_llm, TEMPLATES, renderer, TelegramApi(token),
-                    int(owner) if owner else None, _feedback(), THEMES),
+                    int(owner) if owner else None, _feedback(), THEMES, THEMES_ZH),
                 webhook_secret(token))
     return _bot
 

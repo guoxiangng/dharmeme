@@ -148,6 +148,23 @@ Validation: `template_id` exists, slot names exactly match, each text is non-emp
 
 The user never sees an error; the worst case is a random meme.
 
+## 5a. Chinese — `/chinesememe` (bot only)
+
+A separate feature with its own context, not a translation and not a language toggle.
+`themes/zh.yaml` lists themes in Traditional Chinese from Han Chinese Mahayana and Taiwan's
+humanistic Buddhism (念佛, 吃素, 隨緣, 做義工, 共修…). `/chinesememe` shows them as buttons,
+plus 隨機一張; a tap writes a fresh meme with the Chinese prompt (`TONE_ZH`, `OUTPUT_ZH` in
+`prompt.py`), under the same limits as `/meme`. There is no Chinese pool yet, so a
+fallback is a Chinese message alone.
+
+- Captions are Traditional Chinese; a slot holds half as many Chinese characters as its
+  `max_chars` (a Chinese character is about twice as wide).
+- `render.py` breaks lines between Chinese characters, keeps Latin words whole, never
+  starts a line with closing punctuation, and draws any text containing Chinese with Noto
+  Sans TC at weight 900 (Anton has no Chinese glyphs). `web/render.js` does not do this
+  yet; Chinese is not on the website.
+- `one-does-not-simply` is left out: it depends on a fixed English first line.
+
 ## 6. LLM — same pattern as hakigains
 
 - `src/dharmeme/llm/` with `base.py` (`LLMProvider`, `LLMResponse`), `factory.py`

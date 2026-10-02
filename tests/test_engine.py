@@ -71,7 +71,7 @@ def test_each_topic_is_offered_a_random_few_templates():
     for _ in range(20):
         write_meme("x", llm, TEMPLATES)
     offered = [{t["id"] for t in TEMPLATES if f"- {t['id']}:" in s} for s in llm.systems]
-    assert all(len(ids) == 6 for ids in offered)
+    assert all(len(ids) == 4 for ids in offered)
     assert len(set().union(*offered)) > 15  # different templates from one topic to the next
 
 

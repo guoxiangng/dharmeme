@@ -4,6 +4,7 @@ Same rules as the browser: wrap, shrink to keep every word whole, truncate with 
 at the minimum size, so text never leaves its box. Keep the two files in step.
 """
 import io
+import re
 from functools import cache
 from pathlib import Path
 
@@ -13,6 +14,39 @@ LINE_HEIGHT = 1.15  # line advance as a multiple of the font size
 PAD = 0.04  # inner padding, as a fraction of the box's smaller side
 ELLIPSIS = "…"
 ANCHORS = {"left": "lm", "center": "mm", "right": "rm"}
+# Chinese, Japanese and Korean characters, including their punctuation and full-width forms.
+CJK = re.compile(r"[⺀-鿿豈-﫿＀-￯]")
+NO_LINE_START = "，。、！？；：」』）》〉…"
+CJK_WEIGHT = 900  # Noto Sans TC is a variable font; memes want its heaviest weight
+
+
+def has_cjk(text: str) -> bool:
+    return bool(CJK.search(text))
+
+
+def tokens(para: str) -> list[tuple[str, bool]]:
+    """The units a line may break between, each with whether a space came before it.
+
+    A Latin word is one unit. Chinese has no spaces, so each character is its own unit;
+    closing punctuation stays glued to the character before it, so no line starts with it.
+    """
+    out: list[tuple[str, bool]] = []
+    space, latin_open = False, False
+    for ch in para:
+        if ch.isspace():
+            space, latin_open = True, False
+        elif CJK.match(ch):
+            if ch in NO_LINE_START and out and not space:
+                out[-1] = (out[-1][0] + ch, out[-1][1])
+            else:
+                out.append((ch, space))
+            space, latin_open = False, False
+        elif latin_open:
+            out[-1] = (out[-1][0] + ch, out[-1][1])
+        else:
+            out.append((ch, space))
+            space, latin_open = False, True
+    return out
 
 
 def wrap(measure, text: str, size: int, max_width: float) -> list[str]:
@@ -20,8 +54,8 @@ def wrap(measure, text: str, size: int, max_width: float) -> list[str]:
     lines = []
     for para in str(text).split("\n"):
         line = ""
-        for word in para.split():
-            candidate = f"{line} {word}" if line else word
+        for word, space in tokens(para):
+            candidate = f"{line}{' ' if space else ''}{word}" if line else word
             if measure(candidate, size) <= max_width:
                 line = candidate
                 continue
@@ -42,7 +76,7 @@ def wrap(measure, text: str, size: int, max_width: float) -> list[str]:
 def fit_text(measure, text: str, width: float, height: float, min_size: int = 12) -> dict:
     """The largest font size at which `text` fits the box with every word whole."""
     largest = max(min_size, int(height / LINE_HEIGHT))
-    words = str(text).split()
+    words = [word for para in str(text).split("\n") for word, _ in tokens(para)]
     for size in range(largest, min_size - 1, -1):
         if size > min_size and any(measure(word, size) > width for word in words):
             continue
@@ -62,13 +96,20 @@ def fit_text(measure, text: str, width: float, height: float, min_size: int = 12
 
 
 class Renderer:
-    def __init__(self, images: Path, font: Path) -> None:
+    def __init__(self, images: Path, font: Path, cjk_font: Path | None = None) -> None:
         self.images = Path(images)
         self.font_path = str(font)
-        self.font = cache(lambda size: ImageFont.truetype(self.font_path, size))
+        self.cjk_font_path = str(cjk_font) if cjk_font else None
+        self.font = cache(self._load)
 
-    def measure(self, text: str, size: int) -> float:
-        return self.font(size).getlength(text)
+    def _load(self, size: int, cjk: bool = False):
+        """Anton for Latin text; Noto Sans TC, at its heaviest, for text with Chinese in it
+        (Anton has no Chinese characters)."""
+        if not (cjk and self.cjk_font_path):
+            return ImageFont.truetype(self.font_path, size)
+        font = ImageFont.truetype(self.cjk_font_path, size)
+        font.set_variation_by_axes([CJK_WEIGHT])
+        return font
 
     def render(self, template: dict, slots: dict) -> bytes:
         """Draw the meme and return it as JPEG bytes."""
@@ -86,7 +127,9 @@ class Renderer:
             pad = PAD * min(bw * w, bh * h)
             left, top = x * w + pad, y * h + pad
             width, height = bw * w - 2 * pad, bh * h - 2 * pad
-            fit = fit_text(self.measure, text, width, height, min_size)
+            cjk = has_cjk(text)
+            fit = fit_text(lambda t, s: self.font(s, cjk).getlength(t), text, width, height,
+                           min_size)
             size = fit["font_size"]
             line_height = size * LINE_HEIGHT
             anchor_x = {"left": left, "center": left + width / 2, "right": left + width}
@@ -95,7 +138,8 @@ class Renderer:
             for i, line in enumerate(fit["lines"]):
                 draw.text(
                     (anchor_x[style["align"]], first + i * line_height), line,
-                    font=self.font(size), fill=style["color"], anchor=ANCHORS[style["align"]],
+                    font=self.font(size, cjk), fill=style["color"],
+                    anchor=ANCHORS[style["align"]],
                     # The canvas strokes a line centred on the outline; Pillow's width is
                     # the outward half only.
                     stroke_width=round(max(2, size / 7) / 2) if stroke else 0,

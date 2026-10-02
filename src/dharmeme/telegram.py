@@ -21,17 +21,27 @@ from .themes import as_topic
 HELP = (
     "dharmeme: Buddhist memes. All memes are impermanent.\n\n"
     "/random - a random meme\n"
-    "/meme - pick a theme and get a fresh one"
+    "/meme - pick a theme and get a fresh one\n"
+    "/chinesememe - 中文梗圖（漢傳佛教、人間佛教）"
 )
 PICK = "Pick a theme:"
+PICK_ZH = "選一個主題："
+RANDOM_ZH = "random"  # the "any theme" button in the Chinese list
+# The Chinese feature has no pool to fall back on, so a fallback is a message alone.
+MESSAGES_ZH = {
+    "limit": "今天的梗圖發完了。諸行無常，明天再來。",
+    "declined": "這個題目，還是保持聖默然吧。",
+    "error": "剛剛打妄想了，請再試一次。",
+}
 # Callback data is a 3-character prefix followed by a meme id or a theme id.
 APPROVE, REJECT = "ok:", "no:"  # the owner's buttons
 UP, DOWN, REPORT = "up:", "dn:", "rp:"  # everyone's buttons under a pool meme
 VOTES = {UP: "up", DOWN: "down", REPORT: "report"}
-THEME = "th:"  # a button in the theme list
+THEME, THEME_ZH = "th:", "zh:"  # a button in the English / Chinese theme list
 COMMANDS = [
     {"command": "random", "description": "A random meme"},
     {"command": "meme", "description": "Pick a theme and get a fresh one"},
+    {"command": "chinesememe", "description": "中文梗圖"},
 ]
 
 
@@ -80,8 +90,9 @@ class TelegramApi:
 class Bot:
     def __init__(self, pool, limits, get_llm, templates: list[dict], renderer, telegram,
                  owner_chat_id: int | None = None, feedback=None,
-                 themes: list[dict] = ()) -> None:
+                 themes: list[dict] = (), themes_zh: list[dict] = ()) -> None:
         self.themes = {t["id"]: t for t in themes}
+        self.themes_zh = {t["id"]: t for t in themes_zh}
         self.pool = pool
         self.limits = limits
         self.get_llm = get_llm
@@ -111,28 +122,40 @@ class Bot:
         prefix, meme_id = data[:3], data[3:]
         if prefix in VOTES:
             self.handle_vote(query, VOTES[prefix], meme_id)
-        elif prefix == THEME:
-            self.handle_theme(query, meme_id)
+        elif prefix in (THEME, THEME_ZH):
+            self.handle_theme(query, meme_id, "zh" if prefix == THEME_ZH else "en")
         else:
             self.handle_decision(query, prefix, meme_id)
 
-    def send_theme_list(self, chat_id: int) -> None:
-        buttons = [{"text": t["label"], "callback_data": f"{THEME}{t['id']}"}
-                   for t in self.themes.values()]
-        rows = [buttons[i : i + 2] for i in range(0, len(buttons), 2)]
-        self.telegram.call("sendMessage", {"chat_id": chat_id, "text": PICK,
+    def send_theme_list(self, chat_id: int, lang: str = "en") -> None:
+        if lang == "zh":
+            themes, prefix, text, per_row = self.themes_zh, THEME_ZH, PICK_ZH, 3
+            buttons = [{"text": "隨機一張", "callback_data": f"{THEME_ZH}{RANDOM_ZH}"}]
+        else:
+            themes, prefix, text, per_row = self.themes, THEME, PICK, 2
+            buttons = []
+        buttons += [{"text": t["label"], "callback_data": f"{prefix}{t['id']}"}
+                    for t in themes.values()]
+        rows = [buttons[i : i + per_row] for i in range(0, len(buttons), per_row)]
+        self.telegram.call("sendMessage", {"chat_id": chat_id, "text": text,
                                            "reply_markup": {"inline_keyboard": rows}})
 
-    def handle_theme(self, query: dict, theme_id: str) -> None:
+    def handle_theme(self, query: dict, theme_id: str, lang: str = "en") -> None:
         """A tap on a theme: write a fresh meme on it for the chat the list is in."""
         chat_id = ((query.get("message") or {}).get("chat") or {}).get("id")
-        theme = self.themes.get(theme_id)
-        self.telegram.call("answerCallbackQuery", {
-            "callback_query_id": query["id"],
-            "text": f"{theme['label']}: contemplating…" if theme else "That theme is gone."})
+        themes = self.themes_zh if lang == "zh" else self.themes
+        if lang == "zh" and theme_id == RANDOM_ZH and themes:
+            theme_id = random.choice(list(themes))
+        theme = themes.get(theme_id)
+        if lang == "zh":
+            note = f"{theme['label']}：參究中…" if theme else "這個主題不在了。"
+        else:
+            note = f"{theme['label']}: contemplating…" if theme else "That theme is gone."
+        self.telegram.call("answerCallbackQuery", {"callback_query_id": query["id"],
+                                                   "text": note})
         if theme and chat_id is not None:
             voter = f"tg-{(query.get('from') or {}).get('id')}"
-            self.send_fresh(chat_id, as_topic(theme), voter)
+            self.send_fresh(chat_id, as_topic(theme), voter, lang)
 
     def handle_vote(self, query: dict, kind: str, meme_id: str) -> None:
         """Thumbs up, thumbs down or Report, from anyone."""
@@ -180,6 +203,8 @@ class Bot:
             self.telegram.send_message(chat_id, f"This chat's id is {chat_id}")
         elif command == "/random":
             self.send_random(chat_id)
+        elif command == "/chinesememe":
+            self.send_theme_list(chat_id, "zh")
         elif command.startswith("/") and command != "/meme":
             self.telegram.send_message(chat_id, HELP)
         else:
@@ -207,8 +232,16 @@ class Bot:
             return
         self.send(chat_id, random.choices(memes, [weight(m) for m in memes])[0], caption)
 
-    def send_fresh(self, chat_id: int, topic: str, voter: str) -> None:
+    def send_fresh(self, chat_id: int, topic: str, voter: str, lang: str = "en") -> None:
         """Have the model write a meme on `topic` and send it, within `voter`'s limit."""
+        if lang == "zh":
+            result = ({"fallback": "limit"} if not self.limits.allow(voter) else
+                      write_meme(topic, self.get_llm(), list(self.templates.values()), "zh"))
+            if "fallback" in result:
+                self.telegram.send_message(chat_id, MESSAGES_ZH[result["fallback"]])
+            else:
+                self.send(chat_id, result)
+            return
         if not self.limits.allow(voter):
             self.send_random(chat_id, MESSAGES["limit"])
             return
