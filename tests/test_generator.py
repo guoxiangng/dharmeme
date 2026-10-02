@@ -6,7 +6,7 @@ from dharmeme.catalog import load_catalog
 from dharmeme.limits import Limits
 from dharmeme.pool import Pool
 from dharmeme.store import MemoryStore
-from dharmeme.telegram import REMOVE, Bot
+from dharmeme.telegram import APPROVE, REJECT, Bot
 from test_bot import RENDERER, FakeTelegram
 from test_engine import GOOD, StubLLM
 
@@ -83,31 +83,46 @@ def make_owner_bot(pool):
     return Bot(pool, Limits(pool.store), lambda: None, TEMPLATES, RENDERER, telegram, 99), telegram
 
 
-def button(meme_id, chat_id):
-    return {"callback_query": {"id": "q1", "data": f"{REMOVE}{meme_id}",
+def button(prefix, meme_id, chat_id):
+    return {"callback_query": {"id": "q1", "data": f"{prefix}{meme_id}",
                                "message": {"chat": {"id": chat_id}}}}
 
 
-def test_owner_is_shown_a_new_meme_with_a_remove_button():
-    bot, telegram = make_owner_bot(make_pool())
-    bot.notify_new(SEED)
+def pending_pool():
+    pool = Pool(MemoryStore())
+    pool.add(dict(SEED, status="pending"))
+    return pool
+
+
+def test_owner_is_asked_about_a_pending_meme():
+    bot, telegram = make_owner_bot(pending_pool())
+    bot.ask_owner(SEED)
     kind, chat, caption, markup = telegram.sent[0]
     assert (kind, chat) == ("photo", 99)
-    assert markup["inline_keyboard"][0][0]["callback_data"] == "rm:a1"
+    assert [b["callback_data"] for b in markup["inline_keyboard"][0]] == ["ok:a1", "no:a1"]
 
 
-def test_only_the_owner_can_remove_a_meme():
-    pool = make_pool()
+def test_only_the_owner_can_approve_or_reject():
+    pool = pending_pool()
     bot, telegram = make_owner_bot(pool)
-    bot.handle(button("a1", chat_id=7))
-    assert len(pool.approved()) == 1
+    bot.handle(button(APPROVE, "a1", chat_id=7))
+    assert pool.approved() == []
     assert telegram.calls[-1][1]["text"] == "Not allowed."
 
-    bot.handle(button("a1", chat_id=99))
-    assert pool.approved() == []
-    assert pool.all()[0]["status"] == "rejected"
-    bot.handle(button("missing", chat_id=99))
+    bot.handle(button(APPROVE, "a1", chat_id=99))
+    assert len(pool.approved()) == 1
+    bot.handle(button(REJECT, "a1", chat_id=99))
+    assert pool.approved() == [] and pool.all()[0]["status"] == "rejected"
+    bot.handle(button(APPROVE, "missing", chat_id=99))
     assert telegram.calls[-1][1]["text"] == "That meme is not in the pool."
+
+
+def test_buttons_do_nothing_while_no_owner_is_set():
+    pool = pending_pool()
+    bot, telegram = make_owner_bot(pool)
+    bot.owner_chat_id = None
+    bot.handle({"callback_query": {"id": "q1", "data": f"{APPROVE}a1", "message": {}}})
+    assert pool.approved() == []
 
 
 def test_id_command_reports_the_chat_id():

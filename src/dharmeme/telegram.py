@@ -21,7 +21,7 @@ HELP = (
     "/meme <topic> - a meme about your topic\n\n"
     "Or just send me a topic."
 )
-REMOVE = "rm:"  # callback data prefix on the owner's Remove button
+APPROVE, REJECT = "ok:", "no:"  # callback data prefixes on the owner's buttons
 COMMANDS = [
     {"command": "random", "description": "A random meme"},
     {"command": "meme", "description": "A meme about your topic"},
@@ -79,22 +79,25 @@ class Bot:
         self.templates = {t["id"]: t for t in templates}
         self.renderer = renderer
         self.telegram = telegram
-        self.owner_chat_id = owner_chat_id  # gets the generator's memes, and may remove them
+        self.owner_chat_id = owner_chat_id  # the only chat that is asked to approve memes
 
-    def notify_new(self, meme: dict) -> None:
-        """Show the owner a meme the generator just added, with a button to remove it."""
-        button = {"text": "Remove", "callback_data": f"{REMOVE}{meme['id']}"}
+    def ask_owner(self, meme: dict) -> None:
+        """Send the owner a pending meme with Approve and Reject buttons."""
+        buttons = [{"text": label, "callback_data": f"{prefix}{meme['id']}"}
+                   for label, prefix in (("Approve", APPROVE), ("Reject", REJECT))]
         photo = self.renderer.render(self.templates[meme["template_id"]], meme["slots"])
-        self.telegram.send_photo(self.owner_chat_id, photo, "New in the pool.",
-                                 {"inline_keyboard": [[button]]})
+        self.telegram.send_photo(self.owner_chat_id, photo, "Pending. Publish it?",
+                                 {"inline_keyboard": [buttons]})
 
     def handle_button(self, query: dict) -> None:
+        """A press on Approve or Reject. Only presses from the owner's chat count."""
         data = query.get("data") or ""
         chat_id = ((query.get("message") or {}).get("chat") or {}).get("id")
-        if chat_id != self.owner_chat_id or not data.startswith(REMOVE):
+        status = {APPROVE: "approved", REJECT: "rejected"}.get(data[: len(APPROVE)])
+        if self.owner_chat_id is None or chat_id != self.owner_chat_id or status is None:
             text = "Not allowed."
-        elif self.pool.set_status(data[len(REMOVE):], "rejected"):
-            text = "Removed from the pool."
+        elif self.pool.set_status(data[len(APPROVE):], status):
+            text = "Published." if status == "approved" else "Rejected."
         else:
             text = "That meme is not in the pool."
         self.telegram.call("answerCallbackQuery", {"callback_query_id": query["id"], "text": text})

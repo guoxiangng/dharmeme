@@ -70,27 +70,41 @@ def get_bot():
     return _bot
 
 
-def generate() -> dict:
-    """The daily run: add new memes to the pool (SPEC.md §4).
+def _owner_bot():
+    configured = get_bot()
+    return configured[0] if configured and configured[0].owner_chat_id else None
 
-    With an owner chat configured the memes go live and the owner gets each one with a
-    Remove button. Without one nobody could veto them, so they wait as pending.
-    """
+
+def ask_owner(memes: list[dict]) -> int:
+    """Send pending memes to the owner's chat for approval. Returns how many were sent."""
+    bot = _owner_bot()
+    sent = 0
+    for meme in memes if bot else []:
+        try:
+            bot.ask_owner(meme)
+            sent += 1
+        except Exception as exc:  # noqa: BLE001 — it stays pending and can be re-sent
+            print(f"could not send {meme['id']} to the owner: {exc!r}")
+    return sent
+
+
+def generate() -> dict:
+    """The daily run (SPEC.md §4). New memes are always pending: nothing generated is
+    published until the owner approves it in their own chat."""
     from dharmeme import generator
 
     pool, _ = _engine()
-    configured = get_bot()
-    bot = configured[0] if configured and configured[0].owner_chat_id else None
     added = generator.run(pool, get_llm(), TEMPLATES,
                           count=int(os.environ.get("DHARMEME_GENERATE_COUNT", "10")),
-                          status="approved" if bot else "pending")
-    for meme in added:
-        if bot:
-            try:
-                bot.notify_new(meme)
-            except Exception as exc:  # noqa: BLE001 — the meme is in the pool either way
-                print(f"generate: could not notify the owner about {meme['id']}: {exc!r}")
-    return {"added": [m["id"] for m in added], "status": "approved" if bot else "pending"}
+                          status="pending")
+    return {"added": [m["id"] for m in added], "sent_to_owner": ask_owner(added)}
+
+
+def send_pending() -> dict:
+    """Re-send every pending meme to the owner (for ones added before a chat was set)."""
+    pool, _ = _engine()
+    pending = [m for m in pool.all() if m["status"] == "pending"]
+    return {"pending": len(pending), "sent_to_owner": ask_owner(pending)}
 
 
 @cache
@@ -126,5 +140,7 @@ def handler(event, context):
             return set_telegram_webhook(event["url"])
         if event.get("admin") == "generate":
             return generate()
+        if event.get("admin") == "send_pending":
+            return send_pending()
         return {"ok": False, "error": "unknown admin event"}
     return _api().handle(event)

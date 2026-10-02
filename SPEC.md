@@ -86,9 +86,10 @@ live list: once the generator and the bot change the pool, the file is not updat
   with the fewest memes, shown what the pool already has; the second, a separate reviewer,
   passes or fails each against the tone rules. Only valid, non-duplicate, passed memes are
   added. An unreadable review adds nothing.
-- With `OwnerChatId` set, generated memes are `approved` and the bot sends each to the
-  owner with a **Remove** button, which sets the meme to `rejected`. Without it nobody could
-  veto them, so they are added as `pending` and not served.
+- Generated memes are always added as `pending` and are not served. Nothing generated is
+  published without the owner: with `OwnerChatId` set, the bot sends each pending meme to
+  that one chat with **Approve** and **Reject** buttons, and a press counts only when it
+  comes from that chat. The `send_pending` admin invoke re-sends whatever is still pending.
 
 ## 5. Prompt feature — `POST /meme` → `write_meme(topic) -> {template_id, slots}`
 

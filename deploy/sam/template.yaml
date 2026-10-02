@@ -21,8 +21,8 @@ Parameters:
     Type: String
     Default: ""
     Description: >-
-      The owner's Telegram chat id (send /id to the bot). With it set, generated memes go
-      live and the owner gets each one with a Remove button; without it they stay pending.
+      The owner's Telegram chat id (send /id to the bot). Generated memes are always
+      pending; with this set, each is sent to that chat with Approve and Reject buttons.
   GenerateCount:
     Type: Number
     Default: 10
