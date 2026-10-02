@@ -83,7 +83,10 @@ live list: once the generator and the bot change the pool, the file is not updat
   deployed.
 - **Daily generator** (`generator.py`, an EventBridge schedule on the same Lambda): two LLM
   calls a day whatever the traffic. The first writes one meme for each of the N templates
-  with the fewest memes, shown what the pool already has; the second, a separate reviewer,
+  with the fewest memes, shown what the pool already has. Each of those templates is
+  paired with a theme from that language's list, taking the themes the generator has
+  written on least (ties at random), and the theme is stored on the meme as `theme`; so
+  the batches work through every theme before repeating one. The second call, a separate reviewer,
   passes or fails each against the tone rules. Only valid, non-duplicate, passed memes are
   added. An unreadable review adds nothing.
 - Generated memes are always added as `pending` and are not served. Nothing generated is

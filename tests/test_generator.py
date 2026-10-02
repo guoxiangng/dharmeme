@@ -44,6 +44,30 @@ def test_run_adds_the_memes_that_pass_review():
     assert "Chanting" in llm.calls[1]  # the reviewer is shown the batch
 
 
+THEMES = [{"id": name, "label": name.title(), "brief": f"About {name}."}
+          for name in ("impermanence", "karma", "patience")]
+
+
+def test_pick_themes_prefers_the_least_written_on():
+    existing = [{"theme": "impermanence"}, {"theme": "karma"}, {"theme": "karma"}, {}]
+    assert [t["id"] for t in generator.pick_themes(THEMES, existing, 3)] == [
+        "patience", "impermanence", "karma"]
+    assert len(generator.pick_themes(THEMES, [], 7)) == 7  # more memes than themes: cycles
+
+
+def test_each_generated_meme_is_given_a_theme_and_records_it():
+    pool = make_pool()
+    pool.add({"id": "g1", "status": "approved", "created": "2026-10-01", **OTHER,
+              "theme": "karma"})
+    only = [t for t in TEMPLATES if t["id"] in ("drake", "this-is-fine")]
+    llm = StubLLM([NEW, {"template_id": "this-is-fine", "slots": {"chaos": "My inbox"}}],
+                  verdicts(True, True))
+    added = generator.run(pool, llm, only, 2, "pending", NOW, themes=THEMES)
+    # Karma has a meme already, so this batch is written on the other two themes.
+    assert sorted(m["theme"] for m in added) == ["impermanence", "patience"]
+    assert "About patience." in llm.calls[0] and "About karma." not in llm.calls[0]
+
+
 def test_two_runs_in_the_same_minute_do_not_overwrite_each_other():
     pool = make_pool()
     clock = [datetime(2026, 10, 2, 1, 0, 5, tzinfo=timezone.utc)]

@@ -137,7 +137,8 @@ def generate(langs: tuple[str, ...] = ("en", "zh")) -> dict:
     added = []
     for lang in langs:
         added += generator.run(pool, get_llm(), TEMPLATES, status="pending", lang=lang,
-                               count=count if lang == "en" else max(1, count // 2))
+                               count=count if lang == "en" else max(1, count // 2),
+                               themes=THEMES if lang == "en" else THEMES_ZH)
     return {"added": [m["id"] for m in added], "sent_to_owner": ask_owner(added)}
 
 

@@ -10,6 +10,7 @@ import random
 from datetime import datetime, timezone
 
 from .prompt import MemeError, validate, voice
+from .themes import as_topic
 
 SEEN_PER_TEMPLATE = 15  # existing captions shown to the writer, so it doesn't repeat them
 MAX_TOKENS = 3000
@@ -59,6 +60,13 @@ REVIEW_ZH = """\
 
 TEXTS = {"en": (WRITE, REVIEW, "already in the pool"), "zh": (WRITE_ZH, REVIEW_ZH, "庫裡已有")}
 
+# Added to the writer's instructions when each template comes with a theme.
+THEMED = {
+    "en": "Each template below is paired with a theme. Write its meme on that theme, "
+          "through one specific everyday moment; do not restate the teaching.",
+    "zh": "下面每個模板都配了一個主題，請依該主題來寫：找一個具體的生活瞬間，不要複述道理。",
+}
+
 
 def _key(meme: dict) -> tuple:
     """What makes two memes the same: the template and the text, ignoring case and spacing."""
@@ -93,17 +101,36 @@ def pick_templates(templates: list[dict], existing: list[dict], count: int) -> l
     return [order[i % len(order)] for i in range(count)]
 
 
+def pick_themes(themes: list[dict], existing: list[dict], count: int) -> list[dict]:
+    """The `count` themes the generator has written on least, so that over the days every
+    theme is covered and none is written on more than the others."""
+    have = {t["id"]: 0 for t in themes}
+    for meme in existing:
+        if meme.get("theme") in have:
+            have[meme["theme"]] += 1
+    order = sorted(themes, key=lambda t: (have[t["id"]], random.random()))
+    return [order[i % len(order)] for i in range(count)]
+
+
 def write_batch(llm, templates: list[dict], existing: list[dict], count: int,
-                lang: str = "en") -> list[dict]:
-    """Ask for one meme per chosen template; return the valid, new ones."""
+                lang: str = "en", themes: list[dict] = ()) -> list[dict]:
+    """Ask for one meme per chosen template, each on its own theme when `themes` are
+    given; return the valid, new ones."""
     v = voice(lang)
     write, _, seen_label = TEXTS[lang]
     templates = [t for t in templates if t["id"] not in v["skip"]]
-    chosen = pick_templates(templates, existing, count)
+    chosen = list({t["id"]: t for t in pick_templates(templates, existing, count)}.values())
+    theme_of = ({t["id"]: theme for t, theme in
+                 zip(chosen, pick_themes(list(themes), existing, len(chosen)))}
+                if themes else {})
+    if theme_of:
+        write = f"{write}\n\n{THEMED[lang]}"
     blocks = []
-    for template in {t["id"]: t for t in chosen}.values():
+    for template in chosen:
         seen = [m["slots"] for m in existing if m["template_id"] == template["id"]]
         block = f"- {_describe(template, lang)}"
+        if template["id"] in theme_of:
+            block += f"\n  {v['topic']}: {as_topic(theme_of[template['id']])}"
         if seen:
             block += f"\n  {seen_label}: " + json.dumps(
                 seen[-SEEN_PER_TEMPLATE:], ensure_ascii=False)
@@ -124,6 +151,8 @@ def write_batch(llm, templates: list[dict], existing: list[dict], count: int,
             print(f"generator: dropped a duplicate on {meme['template_id']}")
             continue
         taken.add(_key(meme))
+        if meme["template_id"] in theme_of:  # recorded, so the next run can balance
+            meme["theme"] = theme_of[meme["template_id"]]["id"]
         fresh.append(meme)
     return fresh
 
@@ -154,11 +183,13 @@ def review(llm, memes: list[dict], templates: list[dict], lang: str = "en") -> l
 
 
 def run(pool, llm, templates: list[dict], count: int, status: str,
-        now=lambda: datetime.now(timezone.utc), lang: str = "en") -> list[dict]:
+        now=lambda: datetime.now(timezone.utc), lang: str = "en",
+        themes: list[dict] = ()) -> list[dict]:
     """Write, review and add a batch to the pool with `status`. Returns what was added."""
     existing = [m for m in pool.all() if m["lang"] == lang]
     try:
-        memes = review(llm, write_batch(llm, templates, existing, count, lang), templates, lang)
+        memes = review(llm, write_batch(llm, templates, existing, count, lang, themes),
+                       templates, lang)
     except Exception as exc:  # noqa: BLE001 — a bad run adds nothing; tomorrow runs again
         print(f"generator: run failed: {exc!r}")
         return []
