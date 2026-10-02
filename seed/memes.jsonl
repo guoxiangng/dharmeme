@@ -4,9 +4,15 @@
 {"id": "anakin-padme-0001", "template_id": "anakin-padme", "slots": {"anakin": "I'm going on a ten-day retreat", "padme_2": "To find peace, right?", "padme_1": "To find peace, right?"}, "status": "approved", "created": "2026-10-02"}
 {"id": "anakin-padme-0002", "template_id": "anakin-padme", "slots": {"anakin": "I have stopped getting angry", "padme_2": "Because you let go, right?", "padme_1": "Because you let go, right?"}, "status": "approved", "created": "2026-10-02"}
 {"id": "anakin-padme-0003", "template_id": "anakin-padme", "slots": {"padme_1": "For more than two minutes, right?", "padme_2": "For more than two minutes, right?", "anakin": "I meditate every single day"}, "status": "approved", "created": "2026-10-02"}
+{"id": "ancient-aliens-0001", "template_id": "ancient-aliens", "slots": {"bottom": "but it was craving", "top": "I'm not saying it was craving"}, "status": "approved", "created": "2026-10-02"}
+{"id": "ancient-aliens-0002", "template_id": "ancient-aliens", "slots": {"bottom": "but it was my ego", "top": "I'm not saying it was my ego"}, "status": "approved", "created": "2026-10-02"}
+{"id": "bad-luck-brian-0001", "template_id": "bad-luck-brian", "slots": {"top": "Finally lets go of a grudge", "bottom": "Picks up a new one"}, "status": "approved", "created": "2026-10-02"}
+{"id": "bad-luck-brian-0002", "template_id": "bad-luck-brian", "slots": {"bottom": "Roommate snores", "top": "Goes on silent retreat"}, "status": "approved", "created": "2026-10-02"}
 {"id": "batman-slapping-robin-0001", "template_id": "batman-slapping-robin", "slots": {"batman": "That is craving, Robin", "robin": "I'll be happy when I finally get—"}, "status": "approved", "created": "2026-10-02"}
 {"id": "batman-slapping-robin-0002", "template_id": "batman-slapping-robin", "slots": {"robin": "They made me so angry—", "batman": "Nobody handed you the anger"}, "status": "approved", "created": "2026-10-02"}
 {"id": "batman-slapping-robin-0003", "template_id": "batman-slapping-robin", "slots": {"robin": "I'm too busy to meditate—", "batman": "Then sit for twice as long"}, "status": "approved", "created": "2026-10-02"}
+{"id": "believe-it-or-not-0001", "template_id": "believe-it-or-not", "slots": {"line_2": "Getting what you wanted? Suffering.", "line_3": "Getting it and keeping it? Believe it or not, also suffering.", "line_1": "Wanting what you don't have? Suffering."}, "status": "approved", "created": "2026-10-03"}
+{"id": "believe-it-or-not-0002", "template_id": "believe-it-or-not", "slots": {"line_2": "Sit well? Monkey mind.", "line_1": "Sit badly? Monkey mind.", "line_3": "Ten-day silent retreat? Believe it or not, monkey mind."}, "status": "approved", "created": "2026-10-03"}
 {"id": "bike-fall-0001", "template_id": "bike-fall", "slots": {"self_sabotage": "Checking my phone before bed", "blame": "Why is my mind so restless", "cyclist": "Me"}, "status": "approved", "created": "2026-10-02"}
 {"id": "bike-fall-0002", "template_id": "bike-fall", "slots": {"blame": "They ruined my whole day", "cyclist": "Me", "self_sabotage": "Replaying the argument again"}, "status": "approved", "created": "2026-10-02"}
 {"id": "buff-doge-cheems-0001", "template_id": "buff-doge-cheems", "slots": {"strong": "Forest monks: I shall sit under this tree until dawn", "weak": "Me: my cushion is slightly lumpy, session cancelled"}, "status": "approved", "created": "2026-10-02"}
@@ -36,7 +42,16 @@
 {"id": "expanding-brain-0002", "template_id": "expanding-brain", "slots": {"level_3": "Meditating to observe the mind", "level_1": "Meditating to relax", "level_2": "Meditating to be more productive", "level_4": "Sitting there wondering if I left the stove on"}, "status": "approved", "created": "2026-10-01"}
 {"id": "expanding-brain-0003", "template_id": "expanding-brain", "slots": {"level_2": "I am not my thoughts", "level_3": "There is no I", "level_1": "I am my thoughts", "level_4": "Then who keeps eating my leftovers"}, "status": "approved", "created": "2026-10-01"}
 {"id": "expanding-brain-0004", "template_id": "expanding-brain", "slots": {"level_2": "Reading ten books on mindfulness", "level_3": "Owning forty unread books on mindfulness", "level_4": "Being mindful of the book pile", "level_1": "Reading one book on mindfulness"}, "status": "approved", "created": "2026-10-01"}
+{"id": "finding-neverland-0001", "template_id": "finding-neverland", "slots": {"boy": "I thought meditation would be relaxing", "man": "It's just you and your mind"}, "status": "approved", "created": "2026-10-02"}
+{"id": "finding-neverland-0002", "template_id": "finding-neverland", "slots": {"man": "Except telling people about it", "boy": "I've let go of everything"}, "status": "approved", "created": "2026-10-02"}
+{"id": "first-world-problems-0001", "template_id": "first-world-problems", "slots": {"bottom": "and reset my streak", "top": "My meditation app updated"}, "status": "approved", "created": "2026-10-02"}
+{"id": "first-world-problems-0002", "template_id": "first-world-problems", "slots": {"bottom": "has no oat milk", "top": "The retreat centre"}, "status": "approved", "created": "2026-10-02"}
+{"id": "futurama-fry-0001", "template_id": "futurama-fry", "slots": {"top": "Not sure if deep meditation", "bottom": "or just fell asleep"}, "status": "approved", "created": "2026-10-02"}
+{"id": "futurama-fry-0002", "template_id": "futurama-fry", "slots": {"bottom": "or just avoiding it", "top": "Not sure if letting go"}, "status": "approved", "created": "2026-10-02"}
 {"id": "gen-20261002-0354-04", "template_id": "grus-plan", "slots": {"step_3": "Feel superior all day", "step_4": "Feel superior all day", "step_1": "Wake up early", "step_2": "Meditate before breakfast"}, "status": "approved", "created": "2026-10-02"}
+{"id": "gen-20261002-0354-05", "template_id": "clown-makeup", "slots": {"step_3": "I'm becoming a thought expert", "step_4": "This is definitely not ego", "step_1": "I'm just noticing my thoughts", "step_2": "I'm cataloguing them really well"}, "status": "approved", "created": "2026-10-02"}
+{"id": "grumpy-cat-0001", "template_id": "grumpy-cat", "slots": {"bottom": "I was. I didn't like it.", "top": "Be here now"}, "status": "approved", "created": "2026-10-02"}
+{"id": "grumpy-cat-0002", "template_id": "grumpy-cat", "slots": {"top": "May all beings be happy", "bottom": "Quietly. Somewhere else."}, "status": "approved", "created": "2026-10-02"}
 {"id": "grus-plan-0001", "template_id": "grus-plan", "slots": {"step_2": "Finally get some peace", "step_3": "Meet my own mind", "step_1": "Go on a silent retreat", "step_4": "Meet my own mind"}, "status": "approved", "created": "2026-10-02"}
 {"id": "grus-plan-0002", "template_id": "grus-plan", "slots": {"step_3": "Desire to be seen as free", "step_1": "Let go of all desire", "step_4": "Desire to be seen as free", "step_2": "Become totally free"}, "status": "approved", "created": "2026-10-02"}
 {"id": "grus-plan-0003", "template_id": "grus-plan", "slots": {"step_4": "Now have a streak to protect", "step_1": "Download a meditation app", "step_2": "Become calm and focused", "step_3": "Now have a streak to protect"}, "status": "approved", "created": "2026-10-02"}
@@ -46,24 +61,42 @@
 {"id": "is-this-a-pigeon-0001", "template_id": "is-this-a-pigeon", "slots": {"thing": "Ten calm seconds", "question": "Is this enlightenment?", "person": "Me"}, "status": "approved", "created": "2026-10-01"}
 {"id": "is-this-a-pigeon-0002", "template_id": "is-this-a-pigeon", "slots": {"person": "My ego", "question": "Is this spiritual superiority?", "thing": "Being a bit less annoyed"}, "status": "approved", "created": "2026-10-01"}
 {"id": "is-this-a-pigeon-0003", "template_id": "is-this-a-pigeon", "slots": {"question": "Is this deep concentration?", "thing": "A numb leg", "person": "Beginner me"}, "status": "approved", "created": "2026-10-01"}
+{"id": "laughing-leo-0001", "template_id": "laughing-leo", "slots": {"bottom": "they'll start practising when life calms down", "top": "Me when someone says"}, "status": "approved", "created": "2026-10-02"}
+{"id": "laughing-leo-0002", "template_id": "laughing-leo", "slots": {"top": "Me watching my mind", "bottom": "promise to behave this time"}, "status": "approved", "created": "2026-10-02"}
 {"id": "left-exit-12-0001", "template_id": "left-exit-12", "slots": {"exit": "Replaying a 2014 argument", "straight": "Following the breath", "car": "My mind"}, "status": "approved", "created": "2026-10-01"}
 {"id": "left-exit-12-0002", "template_id": "left-exit-12", "slots": {"straight": "The middle way", "car": "Me, every January", "exit": "All or nothing"}, "status": "approved", "created": "2026-10-01"}
 {"id": "left-exit-12-0003", "template_id": "left-exit-12", "slots": {"straight": "Just noting the thought", "car": "Me on the cushion", "exit": "Writing the whole screenplay"}, "status": "approved", "created": "2026-10-01"}
+{"id": "leo-cheers-0001", "template_id": "leo-cheers", "slots": {"bottom": "and to those who meant to", "top": "To everyone who meditated today"}, "status": "approved", "created": "2026-10-02"}
+{"id": "leo-cheers-0002", "template_id": "leo-cheers", "slots": {"bottom": "three hours later", "top": "Here's to noticing the thought"}, "status": "approved", "created": "2026-10-02"}
+{"id": "marked-safe-0002", "template_id": "marked-safe", "slots": {"danger": "replying to that message in anger"}, "status": "approved", "created": "2026-10-02"}
 {"id": "monkey-puppet-0002", "template_id": "monkey-puppet", "slots": {"situation": "When someone asks how the daily practice is going"}, "status": "approved", "created": "2026-10-02"}
 {"id": "monkey-puppet-0003", "template_id": "monkey-puppet", "slots": {"situation": "When the talk on right speech starts right after I finished gossiping"}, "status": "approved", "created": "2026-10-02"}
+{"id": "morpheus-0001", "template_id": "morpheus", "slots": {"bottom": "the silence was never the problem", "top": "What if I told you"}, "status": "approved", "created": "2026-10-02"}
+{"id": "morpheus-0002", "template_id": "morpheus", "slots": {"bottom": "you can stop the argument in your head", "top": "What if I told you"}, "status": "approved", "created": "2026-10-02"}
 {"id": "one-does-not-simply-0001", "template_id": "one-does-not-simply", "slots": {"bottom": "sit still for five minutes", "top": "One does not simply"}, "status": "approved", "created": "2026-10-02"}
 {"id": "one-does-not-simply-0002", "template_id": "one-does-not-simply", "slots": {"bottom": "let it go on the first try", "top": "One does not simply"}, "status": "approved", "created": "2026-10-02"}
 {"id": "one-does-not-simply-0003", "template_id": "one-does-not-simply", "slots": {"top": "One does not simply", "bottom": "eat just one mindful biscuit"}, "status": "approved", "created": "2026-10-02"}
+{"id": "oprah-0001", "template_id": "oprah", "slots": {"top": "You get impermanence", "bottom": "Everybody gets impermanence"}, "status": "approved", "created": "2026-10-02"}
+{"id": "oprah-0002", "template_id": "oprah", "slots": {"bottom": "Everybody gets a wandering mind", "top": "You get a wandering mind"}, "status": "approved", "created": "2026-10-02"}
 {"id": "panik-kalm-panik-0001", "template_id": "panik-kalm-panik", "slots": {"kalm": "Noticing is the practice", "panik_1": "You notice your mind wandered", "panik_2": "It wandered for the whole forty minutes"}, "status": "approved", "created": "2026-10-02"}
 {"id": "panik-kalm-panik-0002", "template_id": "panik-kalm-panik", "slots": {"panik_1": "Everything is impermanent", "kalm": "So is this suffering", "panik_2": "So is the weekend"}, "status": "approved", "created": "2026-10-02"}
 {"id": "panik-kalm-panik-0003", "template_id": "panik-kalm-panik", "slots": {"kalm": "No small talk for ten days", "panik_2": "Ten days alone with my own thoughts", "panik_1": "The retreat is fully silent"}, "status": "approved", "created": "2026-10-02"}
+{"id": "philosoraptor-0002", "template_id": "philosoraptor", "slots": {"bottom": "am I attached or not", "top": "If I am attached to non-attachment"}, "status": "approved", "created": "2026-10-02"}
 {"id": "roll-safe-0001", "template_id": "roll-safe", "slots": {"bottom": "if noticing you failed is the practice", "top": "You can't fail at meditation"}, "status": "approved", "created": "2026-10-02"}
 {"id": "roll-safe-0002", "template_id": "roll-safe", "slots": {"top": "You can't be disappointed", "bottom": "if you expect everything to change"}, "status": "approved", "created": "2026-10-02"}
 {"id": "roll-safe-0003", "template_id": "roll-safe", "slots": {"top": "You can't get distracted from the breath", "bottom": "if you never start watching it"}, "status": "approved", "created": "2026-10-02"}
 {"id": "running-away-balloon-0001", "template_id": "running-away-balloon", "slots": {"me": "Me", "goal": "Inner peace", "held_back_by": "One more scroll"}, "status": "approved", "created": "2026-10-02"}
 {"id": "running-away-balloon-0003", "template_id": "running-away-balloon", "slots": {"goal": "Waking at 5am to sit", "me": "Me", "held_back_by": "The snooze button"}, "status": "approved", "created": "2026-10-02"}
+{"id": "sad-pablo-0001", "template_id": "sad-pablo", "slots": {"waiting": "Me waiting for the mind to settle by itself"}, "status": "approved", "created": "2026-10-02"}
+{"id": "sad-pablo-0002", "template_id": "sad-pablo", "slots": {"waiting": "Waiting for the retreat glow to come back"}, "status": "approved", "created": "2026-10-02"}
 {"id": "same-picture-0001", "template_id": "same-picture", "slots": {"picture_b": "A nap", "picture_a": "Meditating lying down"}, "status": "approved", "created": "2026-10-02"}
 {"id": "same-picture-0002", "template_id": "same-picture", "slots": {"picture_b": "Not replying to messages", "picture_a": "Non-attachment"}, "status": "approved", "created": "2026-10-02"}
+{"id": "scroll-of-truth-0001", "template_id": "scroll-of-truth", "slots": {"truth": "The retreat won't fix you. You still have to practise."}, "status": "approved", "created": "2026-10-02"}
+{"id": "scroll-of-truth-0002", "template_id": "scroll-of-truth", "slots": {"truth": "Nobody is thinking about you as much as you are."}, "status": "approved", "created": "2026-10-02"}
+{"id": "spiderman-pointing-0001", "template_id": "spiderman-pointing", "slots": {"right": "The one who is annoyed", "left": "The one who annoys me"}, "status": "approved", "created": "2026-10-02"}
+{"id": "spiderman-pointing-0002", "template_id": "spiderman-pointing", "slots": {"left": "Monday's craving", "right": "Tuesday's craving"}, "status": "approved", "created": "2026-10-02"}
+{"id": "success-kid-0001", "template_id": "success-kid", "slots": {"top": "Noticed I was angry", "bottom": "before sending the message"}, "status": "approved", "created": "2026-10-02"}
+{"id": "success-kid-0002", "template_id": "success-kid", "slots": {"bottom": "only checked the timer twice", "top": "Sat for ten minutes"}, "status": "approved", "created": "2026-10-02"}
 {"id": "surprised-pikachu-0001", "template_id": "surprised-pikachu", "slots": {"setup": "Me: drinks coffee at 9pm. Mind at midnight: races. Me:"}, "status": "approved", "created": "2026-10-02"}
 {"id": "surprised-pikachu-0002", "template_id": "surprised-pikachu", "slots": {"setup": "Me: clings to things that change. Things: change. Me:"}, "status": "approved", "created": "2026-10-02"}
 {"id": "surprised-pikachu-0003", "template_id": "surprised-pikachu", "slots": {"setup": "Me: skips practice for a month. Mind: is exactly as before. Me:"}, "status": "approved", "created": "2026-10-02"}
@@ -71,6 +104,8 @@
 {"id": "this-is-fine-0002", "template_id": "this-is-fine", "slots": {"chaos": "Everything I am attached to, being impermanent"}, "status": "approved", "created": "2026-10-01"}
 {"id": "this-is-fine-0003", "template_id": "this-is-fine", "slots": {"chaos": "Production, five minutes into my lunch-break sit"}, "status": "approved", "created": "2026-10-01"}
 {"id": "this-is-fine-0004", "template_id": "this-is-fine", "slots": {"chaos": "My five-year plan meeting impermanence"}, "status": "approved", "created": "2026-10-01"}
+{"id": "trade-offer-0001", "template_id": "trade-offer", "slots": {"you_receive": "One meditation session", "i_receive": "Enlightenment by Friday"}, "status": "approved", "created": "2026-10-02"}
+{"id": "trade-offer-0002", "template_id": "trade-offer", "slots": {"i_receive": "A calm mind", "you_receive": "No effort from me at all"}, "status": "approved", "created": "2026-10-02"}
 {"id": "tuxedo-pooh-0001", "template_id": "tuxedo-pooh", "slots": {"fancy": "I entered a deep state of non-doing", "plain": "I fell asleep"}, "status": "approved", "created": "2026-10-02"}
 {"id": "tuxedo-pooh-0002", "template_id": "tuxedo-pooh", "slots": {"fancy": "I practised non-attachment to the task", "plain": "I forgot"}, "status": "approved", "created": "2026-10-02"}
 {"id": "tuxedo-pooh-0003", "template_id": "tuxedo-pooh", "slots": {"plain": "I ate the whole cake", "fancy": "I fully accepted what the present moment offered"}, "status": "approved", "created": "2026-10-02"}
@@ -78,6 +113,8 @@
 {"id": "two-buttons-0002", "template_id": "two-buttons", "slots": {"chooser": "Me, 40 seconds into meditation", "option_a": "Sit with the discomfort", "option_b": "Check phone"}, "status": "approved", "created": "2026-10-01"}
 {"id": "two-buttons-0003", "template_id": "two-buttons", "slots": {"option_b": "Expect to be good at this by now", "option_a": "Have no expectations", "chooser": "Every beginner meditator"}, "status": "approved", "created": "2026-10-01"}
 {"id": "two-buttons-0004", "template_id": "two-buttons", "slots": {"option_a": "Desire nothing", "chooser": "Me overthinking the Second Noble Truth", "option_b": "Desire to desire nothing"}, "status": "approved", "created": "2026-10-01"}
+{"id": "unsettled-tom-0001", "template_id": "unsettled-tom", "slots": {"situation": "When the Dhamma talk describes exactly what I did today"}, "status": "approved", "created": "2026-10-02"}
+{"id": "unsettled-tom-0002", "template_id": "unsettled-tom", "slots": {"situation": "When I notice the thing that annoys me is something I do"}, "status": "approved", "created": "2026-10-02"}
 {"id": "waiting-skeleton-0001", "template_id": "waiting-skeleton", "slots": {"top": "Me waiting for my mind to go quiet", "bottom": "Before I start meditating"}, "status": "approved", "created": "2026-10-01"}
 {"id": "waiting-skeleton-0002", "template_id": "waiting-skeleton", "slots": {"bottom": "Still not it", "top": "Waiting for the perfect time to start"}, "status": "approved", "created": "2026-10-01"}
 {"id": "waiting-skeleton-0003", "template_id": "waiting-skeleton", "slots": {"bottom": "It said five more minutes", "top": "Waiting for the craving to pass"}, "status": "approved", "created": "2026-10-01"}
@@ -86,49 +123,7 @@
 {"id": "woman-yelling-at-cat-0002", "template_id": "woman-yelling-at-cat", "slots": {"cat": "Correct. It was very hard.", "yelling": "You sat there for an hour doing nothing!"}, "status": "approved", "created": "2026-10-01"}
 {"id": "woman-yelling-at-cat-0003", "template_id": "woman-yelling-at-cat", "slots": {"cat": "Then why is your to-do list eternal", "yelling": "Everything changes! Nothing lasts!"}, "status": "approved", "created": "2026-10-01"}
 {"id": "woman-yelling-at-cat-0004", "template_id": "woman-yelling-at-cat", "slots": {"yelling": "Stop being so attached to outcomes!", "cat": "I'm attached to dinner. Dinner is at six."}, "status": "approved", "created": "2026-10-01"}
-{"id": "mocking-spongebob-0001", "template_id": "mocking-spongebob", "slots": {"top": "I'm not attached to my phone", "bottom": "i'M nOt aTtAcHeD tO mY pHoNe"}, "status": "pending", "created": "2026-10-02"}
-{"id": "mocking-spongebob-0002", "template_id": "mocking-spongebob", "slots": {"top": "I have let it go", "bottom": "i HaVe LeT iT gO"}, "status": "pending", "created": "2026-10-02"}
-{"id": "sad-pablo-0001", "template_id": "sad-pablo", "slots": {"waiting": "Me waiting for the mind to settle by itself"}, "status": "pending", "created": "2026-10-02"}
-{"id": "sad-pablo-0002", "template_id": "sad-pablo", "slots": {"waiting": "Waiting for the retreat glow to come back"}, "status": "pending", "created": "2026-10-02"}
-{"id": "trade-offer-0001", "template_id": "trade-offer", "slots": {"i_receive": "Enlightenment by Friday", "you_receive": "One meditation session"}, "status": "pending", "created": "2026-10-02"}
-{"id": "trade-offer-0002", "template_id": "trade-offer", "slots": {"i_receive": "A calm mind", "you_receive": "No effort from me at all"}, "status": "pending", "created": "2026-10-02"}
-{"id": "x-everywhere-0001", "template_id": "x-everywhere", "slots": {"top": "Impermanence", "bottom": "Impermanence everywhere"}, "status": "pending", "created": "2026-10-02"}
-{"id": "x-everywhere-0002", "template_id": "x-everywhere", "slots": {"top": "Thoughts", "bottom": "Thoughts everywhere"}, "status": "pending", "created": "2026-10-02"}
-{"id": "ancient-aliens-0001", "template_id": "ancient-aliens", "slots": {"top": "I'm not saying it was craving", "bottom": "but it was craving"}, "status": "pending", "created": "2026-10-02"}
-{"id": "ancient-aliens-0002", "template_id": "ancient-aliens", "slots": {"top": "I'm not saying it was my ego", "bottom": "but it was my ego"}, "status": "pending", "created": "2026-10-02"}
-{"id": "futurama-fry-0001", "template_id": "futurama-fry", "slots": {"top": "Not sure if deep meditation", "bottom": "or just fell asleep"}, "status": "pending", "created": "2026-10-02"}
-{"id": "futurama-fry-0002", "template_id": "futurama-fry", "slots": {"top": "Not sure if letting go", "bottom": "or just avoiding it"}, "status": "pending", "created": "2026-10-02"}
-{"id": "success-kid-0001", "template_id": "success-kid", "slots": {"top": "Noticed I was angry", "bottom": "before sending the message"}, "status": "pending", "created": "2026-10-02"}
-{"id": "success-kid-0002", "template_id": "success-kid", "slots": {"top": "Sat for ten minutes", "bottom": "only checked the timer twice"}, "status": "pending", "created": "2026-10-02"}
-{"id": "leo-cheers-0001", "template_id": "leo-cheers", "slots": {"top": "To everyone who meditated today", "bottom": "and to those who meant to"}, "status": "pending", "created": "2026-10-02"}
-{"id": "leo-cheers-0002", "template_id": "leo-cheers", "slots": {"top": "Here's to noticing the thought", "bottom": "three hours later"}, "status": "pending", "created": "2026-10-02"}
-{"id": "scroll-of-truth-0001", "template_id": "scroll-of-truth", "slots": {"truth": "The retreat won't fix you. You still have to practise."}, "status": "pending", "created": "2026-10-02"}
-{"id": "scroll-of-truth-0002", "template_id": "scroll-of-truth", "slots": {"truth": "Nobody is thinking about you as much as you are."}, "status": "pending", "created": "2026-10-02"}
-{"id": "bad-luck-brian-0001", "template_id": "bad-luck-brian", "slots": {"top": "Finally lets go of a grudge", "bottom": "Picks up a new one"}, "status": "pending", "created": "2026-10-02"}
-{"id": "bad-luck-brian-0002", "template_id": "bad-luck-brian", "slots": {"top": "Goes on silent retreat", "bottom": "Roommate snores"}, "status": "pending", "created": "2026-10-02"}
-{"id": "oprah-0001", "template_id": "oprah", "slots": {"top": "You get impermanence", "bottom": "Everybody gets impermanence"}, "status": "pending", "created": "2026-10-02"}
-{"id": "oprah-0002", "template_id": "oprah", "slots": {"top": "You get a wandering mind", "bottom": "Everybody gets a wandering mind"}, "status": "pending", "created": "2026-10-02"}
-{"id": "grumpy-cat-0001", "template_id": "grumpy-cat", "slots": {"top": "Be here now", "bottom": "I was. I didn't like it."}, "status": "pending", "created": "2026-10-02"}
-{"id": "grumpy-cat-0002", "template_id": "grumpy-cat", "slots": {"top": "May all beings be happy", "bottom": "Quietly. Somewhere else."}, "status": "pending", "created": "2026-10-02"}
-{"id": "nut-button-0001", "template_id": "nut-button", "slots": {"button": "One more episode"}, "status": "pending", "created": "2026-10-02"}
-{"id": "nut-button-0002", "template_id": "nut-button", "slots": {"button": "Check the phone again"}, "status": "pending", "created": "2026-10-02"}
-{"id": "finding-neverland-0001", "template_id": "finding-neverland", "slots": {"boy": "I thought meditation would be relaxing", "man": "It's just you and your mind"}, "status": "pending", "created": "2026-10-02"}
-{"id": "finding-neverland-0002", "template_id": "finding-neverland", "slots": {"boy": "I've let go of everything", "man": "Except telling people about it"}, "status": "pending", "created": "2026-10-02"}
-{"id": "unsettled-tom-0001", "template_id": "unsettled-tom", "slots": {"situation": "When the Dhamma talk describes exactly what I did today"}, "status": "pending", "created": "2026-10-02"}
-{"id": "unsettled-tom-0002", "template_id": "unsettled-tom", "slots": {"situation": "When I notice the thing that annoys me is something I do"}, "status": "pending", "created": "2026-10-02"}
-{"id": "laughing-leo-0001", "template_id": "laughing-leo", "slots": {"top": "Me when someone says", "bottom": "they'll start practising when life calms down"}, "status": "pending", "created": "2026-10-02"}
-{"id": "laughing-leo-0002", "template_id": "laughing-leo", "slots": {"top": "Me watching my mind", "bottom": "promise to behave this time"}, "status": "pending", "created": "2026-10-02"}
-{"id": "marked-safe-0001", "template_id": "marked-safe", "slots": {"danger": "checking my phone during the sit"}, "status": "pending", "created": "2026-10-02"}
-{"id": "marked-safe-0002", "template_id": "marked-safe", "slots": {"danger": "replying to that message in anger"}, "status": "pending", "created": "2026-10-02"}
-{"id": "spiderman-pointing-0001", "template_id": "spiderman-pointing", "slots": {"left": "The one who annoys me", "right": "The one who is annoyed"}, "status": "pending", "created": "2026-10-02"}
-{"id": "spiderman-pointing-0002", "template_id": "spiderman-pointing", "slots": {"left": "Monday's craving", "right": "Tuesday's craving"}, "status": "pending", "created": "2026-10-02"}
-{"id": "philosoraptor-0001", "template_id": "philosoraptor", "slots": {"top": "If there is no self", "bottom": "who keeps hitting snooze"}, "status": "pending", "created": "2026-10-02"}
-{"id": "philosoraptor-0002", "template_id": "philosoraptor", "slots": {"top": "If I am attached to non-attachment", "bottom": "am I attached or not"}, "status": "pending", "created": "2026-10-02"}
-{"id": "morpheus-0001", "template_id": "morpheus", "slots": {"top": "What if I told you", "bottom": "the silence was never the problem"}, "status": "pending", "created": "2026-10-02"}
-{"id": "morpheus-0002", "template_id": "morpheus", "slots": {"top": "What if I told you", "bottom": "you can stop the argument in your head"}, "status": "pending", "created": "2026-10-02"}
-{"id": "first-world-problems-0001", "template_id": "first-world-problems", "slots": {"top": "My meditation app updated", "bottom": "and reset my streak"}, "status": "pending", "created": "2026-10-02"}
-{"id": "first-world-problems-0002", "template_id": "first-world-problems", "slots": {"top": "The retreat centre", "bottom": "has no oat milk"}, "status": "pending", "created": "2026-10-02"}
-{"id": "wonka-0001", "template_id": "wonka", "slots": {"top": "Oh, you did a weekend retreat?", "bottom": "Tell me more about how awakened you are"}, "status": "pending", "created": "2026-10-02"}
-{"id": "wonka-0002", "template_id": "wonka", "slots": {"top": "Oh, you've stopped having an ego?", "bottom": "Please, go on about yourself"}, "status": "pending", "created": "2026-10-02"}
-{"id": "believe-it-or-not-0001", "template_id": "believe-it-or-not", "slots": {"line_1": "Wanting what you don't have? Suffering.", "line_2": "Getting what you wanted? Suffering.", "line_3": "Getting it and keeping it? Believe it or not, also suffering."}, "status": "pending", "created": "2026-10-03"}
-{"id": "believe-it-or-not-0002", "template_id": "believe-it-or-not", "slots": {"line_1": "Sit badly? Monkey mind.", "line_2": "Sit well? Monkey mind.", "line_3": "Ten-day silent retreat? Believe it or not, monkey mind."}, "status": "pending", "created": "2026-10-03"}
+{"id": "wonka-0001", "template_id": "wonka", "slots": {"bottom": "Tell me more about how awakened you are", "top": "Oh, you did a weekend retreat?"}, "status": "approved", "created": "2026-10-02"}
+{"id": "wonka-0002", "template_id": "wonka", "slots": {"top": "Oh, you've stopped having an ego?", "bottom": "Please, go on about yourself"}, "status": "approved", "created": "2026-10-02"}
+{"id": "x-everywhere-0001", "template_id": "x-everywhere", "slots": {"bottom": "Impermanence everywhere", "top": "Impermanence"}, "status": "approved", "created": "2026-10-02"}
+{"id": "x-everywhere-0002", "template_id": "x-everywhere", "slots": {"top": "Thoughts", "bottom": "Thoughts everywhere"}, "status": "approved", "created": "2026-10-02"}

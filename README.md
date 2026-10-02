@@ -1,82 +1,114 @@
 # dharmeme
 
-A Buddhist meme generator. Dharma + meme.
+A Buddhist meme generator. Dharma + meme. All memes are impermanent.
 
-Affectionate humour about attachment, impermanence, the middle way and the monkey mind,
-drawn onto well-known meme templates.
+Affectionate humour about attachment, impermanence, wandering minds and lost counts of
+recitations, drawn onto well-known meme templates. The joke is always on the person
+trying to practise, never on the teaching.
 
-## Features
+- Web app: https://guoxiangng.github.io/dharmeme/
+- Telegram bot: https://t.me/Dhamma_meme_bot
+- Write-up: https://guoxiangng.github.io/projects/dharmeme.html
 
-- **Random** — serves a pre-written, reviewed meme (template + caption pair). No LLM call at
-  request time.
-- **Prompt** — give it a topic; an LLM picks the best-fitting template from the catalog and
-  writes the text for its slots.
+## What it does
+
+- **Random** serves a meme from a pool that a person approved, one by one. No model runs.
+- **Themes**: pick a Buddhist theme (impermanence, the bodhisattva vow, Pure Land
+  practice…) and a model chooses a template and writes a fresh caption. Visitors pick
+  from a list; they never type.
+- **Chinese**, in the bot: its own themes and voice for 汉传佛教 and 人间佛教, in Simplified
+  and Traditional characters, with its own approved pool.
+- **Votes**: 👍, 👎 and Report on pool memes. Votes nudge the order, never the exposure.
+- **A daily batch** of new memes, reviewed by a second model call, then held as pending
+  until the owner approves each one in a private Telegram chat.
 
 No images are AI-generated. Captions are drawn onto a fixed set of template images.
 
-## Planned architecture
+## How it is built
 
-The detailed contracts are in [SPEC.md](SPEC.md).
+| Part | Where |
+|---|---|
+| Website | Static page in `web/`, built by `scripts/build_site.py`, deployed to GitHub Pages by `.github/workflows/pages.yml` |
+| API and bot | One Lambda (`src/dharmeme/`, `deploy/lambda/handler.py`) behind a Function URL |
+| Pool, votes, limits | One DynamoDB table |
+| Model | Claude Haiku on Amazon Bedrock |
+| Infrastructure | AWS SAM, `deploy/sam/template.yaml` |
 
-- **Template catalog** — each template image has a description of what it shows, the joke
-  format, and its text slots.
-- **Meme bank** — captions batch-generated offline per template, hand-reviewed, stored as
-  complete pairs.
-- **Back end** — one AWS Lambda (SAM) behind a Function URL, Claude Haiku on Amazon Bedrock
-  for the prompt feature. Memes are drawn in the browser, so the backend only returns text.
-- **Limits** — per-IP daily limit and a global daily cap in DynamoDB; when the cap is hit,
-  the prompt feature falls back to a random meme.
-- **Front end** — static web page on GitHub Pages (guoxiangng.github.io/dharmeme) for v1;
-  Telegram bot later.
+[SPEC.md](SPEC.md) holds the contracts between the parts and is the place to read before
+changing behaviour. [CLAUDE.md](CLAUDE.md) holds the working rules and the how-tos.
 
-## Status
+## Bot commands
 
-Live at https://guoxiangng.github.io/dharmeme/ with both features: Random, and a meme for
-your topic. The API (Lambda + DynamoDB + Claude Haiku on Bedrock) is deployed with SAM.
-Next: the Telegram bot, then a scheduled generator that grows the pool. See SPEC.md §12.
+| Command | What it does |
+|---|---|
+| `/random` | A meme from the English pool |
+| `/meme` | A list of themes; tap one for a fresh meme |
+| `/chineserandom`, `/chineserandom_tw` | A meme from the Chinese pool, 简体 or 繁體 |
+| `/chinesememe`, `/chinesememe_tw` | A list of Chinese themes; tap one for a fresh meme |
+| `/id` | The chat's id, for setting the owner |
 
-## Telegram bot
+## Run it locally
 
-The same Lambda answers a Telegram bot (`/random`, `/meme <topic>`, or just send a topic).
-It is off until a bot token exists. To switch it on:
+```
+pip install -e ".[dev]"
+pytest                                  # Python tests
+cd web && node --test && cd ..          # JavaScript tests
+python scripts/build_site.py            # builds _site/
+python -m http.server -d _site 8000     # http://localhost:8000/?debug outlines the text boxes
+```
+
+Served from localhost, the page cannot call the API (it only accepts the live site's
+origin), so it shows the memes bundled with the site and themed requests fall back.
+
+## Deploy
+
+The website deploys by itself on every push to `main`.
+
+The API:
+
+```
+pip install -e ".[aws]"
+python scripts/build_lambda.py          # builds deploy/build/dharmeme.zip
+cd deploy/sam && sam deploy             # stack "dharmeme", region ap-southeast-1
+```
+
+`deploy/sam/samconfig.toml` is not in the repo. It holds the stack name, region and the
+owner's chat id (`parameter_overrides = "OwnerChatId=<id>"`); without it, pass those to
+`sam deploy` or the owner is unset and nobody is sent memes to approve.
+
+### Telegram, first time
 
 1. Create a bot with [@BotFather](https://t.me/BotFather) and copy its token.
-2. Store the token (it goes to SSM Parameter Store, encrypted, and nowhere else):
+2. Store the token, encrypted, in SSM Parameter Store:
 
    ```
    aws ssm put-parameter --region ap-southeast-1 --name /dharmeme/telegram-token --type SecureString --value "<token>"
    ```
 
-3. Point the bot at the API (the URL is the stack's `ApiUrl` output):
+3. Register the webhook and the command menu (repeat after changing the commands):
 
    ```
    aws lambda invoke --region ap-southeast-1 --function-name <ApiFunction name> --cli-binary-format raw-in-base64-out --payload "{\"admin\":\"set_telegram_webhook\",\"url\":\"<ApiUrl>\"}" out.json
    ```
 
-Topic memes count against the same daily limits as the website, per chat.
+4. Send `/id` to the bot and deploy with that number as `OwnerChatId`.
 
-## Daily generator
+### Admin events
 
-Every day at 09:00 SGT the Lambda writes a batch of new memes and has a second model call
-review them. The ones that pass are stored as pending: nothing generated is shown until
-the owner approves it. To get them for approval, send `/id` to the bot and deploy with
-that number: `sam deploy --parameter-overrides OwnerChatId=<id>`. Each pending meme then
-arrives in that chat, and only that chat, with Approve and Reject buttons. The admin event
-`{"admin":"send_pending"}` re-sends the ones still pending.
+Invoke the Lambda directly (it needs IAM permission; the public URL cannot reach these):
 
-To run it by hand:
+| Payload | Effect |
+|---|---|
+| `{"admin":"generate"}` | Run the daily batch now; `"langs":["zh"]` for one language |
+| `{"admin":"send_pending","limit":20}` | Send the owner pending memes not sent before |
+| `{"admin":"set_telegram_webhook","url":"<ApiUrl>"}` | Register the webhook and commands |
 
-```
-aws lambda invoke --region ap-southeast-1 --function-name <ApiFunction name> --cli-binary-format raw-in-base64-out --payload "{\"admin\":\"generate\"}" out.json
-```
+## Templates
 
-## Try it locally
+Each template is an image in `templates/images/` and an entry in `templates/catalog.yaml`
+with the joke format in words and its text boxes as fractions of the image. Adding one is
+manual on purpose; see CLAUDE.md. `python scripts/check_boxes.py <id>` outlines the boxes
+on the image.
 
-```
-pip install -e ".[dev]"
-python scripts/fetch_templates.py      # download the template images (once)
-python scripts/build_site.py
-python -m http.server -d _site 8000    # open http://localhost:8000/?debug
-```
-
-Tests: `pytest` and `cd web && node --test`.
+Meme templates belong to their respective owners. Fonts: Anton and Noto Sans TC/SC, under
+the SIL Open Font License.
