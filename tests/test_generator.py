@@ -37,11 +37,21 @@ def test_run_adds_the_memes_that_pass_review():
     pool = make_pool()
     llm = StubLLM([NEW, OTHER], verdicts(True, False))
     added = generator.run(pool, llm, TEMPLATES, len(TEMPLATES), "approved", NOW)
-    assert [m["id"] for m in added] == ["gen-20261002-0100-01"]
+    assert [m["id"] for m in added] == ["gen-20261002-010000-01"]
     assert added[0]["slots"] == NEW["slots"] and added[0]["created"] == "2026-10-02"
     assert len(pool.approved()) == 2
     assert "already in the pool" in llm.calls[0]  # the writer is shown what exists
     assert "Chanting" in llm.calls[1]  # the reviewer is shown the batch
+
+
+def test_two_runs_in_the_same_minute_do_not_overwrite_each_other():
+    pool = make_pool()
+    clock = [datetime(2026, 10, 2, 1, 0, 5, tzinfo=timezone.utc)]
+    for second, meme in ((5, NEW), (40, OTHER)):
+        clock[0] = clock[0].replace(second=second)
+        generator.run(pool, StubLLM([meme], verdicts(True)), TEMPLATES, 1, "pending",
+                      lambda: clock[0])
+    assert len(pool.all()) == 3 and len({m["id"] for m in pool.all()}) == 3
 
 
 def test_invalid_and_duplicate_memes_never_reach_the_reviewer():

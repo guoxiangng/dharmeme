@@ -222,7 +222,7 @@ def test_the_generator_keeps_each_language_to_itself():
     new_zh = {"template_id": "drake", "slots": {"rejected": "早起做早課", "preferred": "再睡五分鐘"}}
     llm = StubLLM([new_zh], [{"n": 1, "pass": True}])
     added = generator.run(pool, llm, TEMPLATES, len(TEMPLATES), "pending", now, "zh")
-    assert [m["id"] for m in added] == ["gen-zh-20261003-0100-01"] and added[0]["lang"] == "zh"
+    assert [m["id"] for m in added] == ["gen-zh-20261003-010000-01"] and added[0]["lang"] == "zh"
     writer, reviewer = llm.calls
     assert "專心念佛" in writer and "Sitting" not in writer  # shown the Chinese pool only
     assert "庫裡已有" in writer and "one-does-not-simply" not in writer

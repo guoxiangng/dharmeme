@@ -166,7 +166,8 @@ def run(pool, llm, templates: list[dict], count: int, status: str,
     prefix = "gen" if lang == "en" else f"gen-{lang}"
     added = []
     for n, meme in enumerate(memes, 1):
-        entry = {"id": f"{prefix}-{stamp:%Y%m%d-%H%M}-{n:02d}", **meme, "status": status,
+        # To the second: two runs in the same minute must not reuse each other's ids.
+        entry = {"id": f"{prefix}-{stamp:%Y%m%d-%H%M%S}-{n:02d}", **meme, "status": status,
                  "created": f"{stamp:%Y-%m-%d}", "lang": lang}
         pool.add(entry)
         added.append(entry)
