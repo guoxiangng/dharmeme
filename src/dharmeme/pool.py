@@ -25,9 +25,11 @@ class Pool:
         ]
 
     def all(self) -> list[dict]:
-        """Every meme, whatever its status or language."""
+        """Every meme, whatever its status or language. `theme` is the theme the daily
+        generator wrote it on, or None."""
         return [{**{k: item[k] for k in (*FIELDS, "status", "created")},
-                 "lang": item.get("lang", "en")} for item in self.store.items(PK)]
+                 "lang": item.get("lang", "en"), "theme": item.get("theme")}
+                for item in self.store.items(PK)]
 
     def add(self, entry: dict) -> None:
         self.store.put({"pk": PK, "sk": entry["id"], **entry})
