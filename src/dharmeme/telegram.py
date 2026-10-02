@@ -127,6 +127,15 @@ class Bot:
         else:
             self.handle_decision(query, prefix, meme_id)
 
+    def answer(self, query: dict, text: str) -> None:
+        """Show the small notice on a button press. Telegram rejects this once the press
+        is more than a few seconds old; that must not stop the action itself."""
+        try:
+            self.telegram.call("answerCallbackQuery",
+                               {"callback_query_id": query["id"], "text": text})
+        except Exception as exc:  # noqa: BLE001
+            print(f"telegram: could not answer a button press: {exc!r}")
+
     def send_theme_list(self, chat_id: int, lang: str = "en") -> None:
         if lang == "zh":
             themes, prefix, text, per_row = self.themes_zh, THEME_ZH, PICK_ZH, 3
@@ -151,8 +160,7 @@ class Bot:
             note = f"{theme['label']}：參究中…" if theme else "這個主題不在了。"
         else:
             note = f"{theme['label']}: contemplating…" if theme else "That theme is gone."
-        self.telegram.call("answerCallbackQuery", {"callback_query_id": query["id"],
-                                                   "text": note})
+        self.answer(query, note)
         if theme and chat_id is not None:
             voter = f"tg-{(query.get('from') or {}).get('id')}"
             self.send_fresh(chat_id, as_topic(theme), voter, lang)
@@ -167,7 +175,7 @@ class Bot:
             text = {"ok": "Reported. Thank you." if kind == "report" else "Thanks!",
                     "already": "You already did that for this one.",
                     "unknown": "That meme is no longer in the pool."}[result]
-        self.telegram.call("answerCallbackQuery", {"callback_query_id": query["id"], "text": text})
+        self.answer(query, text)
 
     def handle_decision(self, query: dict, prefix: str, meme_id: str) -> None:
         """The owner's Approve/Reject (or Keep/Remove). Only their chat's presses count."""
@@ -179,7 +187,7 @@ class Bot:
             text = "In the pool." if status == "approved" else "Not in the pool."
         else:
             text = "That meme is not in the pool."
-        self.telegram.call("answerCallbackQuery", {"callback_query_id": query["id"], "text": text})
+        self.answer(query, text)
         if status and text != "Not allowed.":
             # Replace the buttons with the outcome, so the chat shows what is decided.
             message = query["message"]
