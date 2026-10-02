@@ -25,6 +25,36 @@ class DynamoStore:
     def put(self, item: dict) -> None:
         self.table.put_item(Item=item)
 
+    def put_new(self, item: dict) -> bool:
+        """Store `item` unless one with its key already exists; False if it does. Atomic."""
+        from botocore.exceptions import ClientError
+
+        try:
+            self.table.put_item(Item=item, ConditionExpression="attribute_not_exists(pk)")
+        except ClientError as exc:
+            if exc.response["Error"]["Code"] == "ConditionalCheckFailedException":
+                return False
+            raise
+        return True
+
+    def add(self, pk: str, sk: str, field: str) -> dict | None:
+        """Add 1 to a number on an existing item and return the item; None if it is gone."""
+        from botocore.exceptions import ClientError
+
+        try:
+            return self.table.update_item(
+                Key={"pk": pk, "sk": sk},
+                UpdateExpression="ADD #f :one",
+                ConditionExpression="attribute_exists(pk)",
+                ExpressionAttributeNames={"#f": field},
+                ExpressionAttributeValues={":one": 1},
+                ReturnValues="ALL_NEW",
+            )["Attributes"]
+        except ClientError as exc:
+            if exc.response["Error"]["Code"] == "ConditionalCheckFailedException":
+                return None
+            raise
+
     def increment(self, pk: str, sk: str, limit: int, expires: int) -> bool:
         """Add 1 to a counter unless it has reached `limit`; False if it has. Atomic.
 
@@ -56,6 +86,19 @@ class MemoryStore:
 
     def put(self, item: dict) -> None:
         self.data[(item["pk"], item["sk"])] = dict(item)
+
+    def put_new(self, item: dict) -> bool:
+        if (item["pk"], item["sk"]) in self.data:
+            return False
+        self.put(item)
+        return True
+
+    def add(self, pk: str, sk: str, field: str) -> dict | None:
+        item = self.data.get((pk, sk))
+        if item is None:
+            return None
+        item[field] = item.get(field, 0) + 1
+        return dict(item)
 
     def increment(self, pk: str, sk: str, limit: int, expires: int) -> bool:
         item = self.data.setdefault((pk, sk), {"pk": pk, "sk": sk, "count": 0})

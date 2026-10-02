@@ -115,7 +115,7 @@ def test_only_the_owner_can_approve_or_reject():
     assert len(pool.approved()) == 1
     # the buttons are replaced by the outcome
     assert telegram.calls[-1] == ("editMessageCaption",
-                                  {"chat_id": 99, "message_id": None, "caption": "Published."})
+                                  {"chat_id": 99, "message_id": None, "caption": "In the pool."})
     bot.handle(button(REJECT, "a1", chat_id=99))
     assert pool.approved() == [] and pool.all()[0]["status"] == "rejected"
     bot.handle(button(APPROVE, "missing", chat_id=99))

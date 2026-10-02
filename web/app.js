@@ -1,4 +1,5 @@
 import { API_BASE } from "./config.js";
+import { deck } from "./deck.js";
 import { loadImage } from "./images.js";
 import { FONT_FAMILY, renderMeme } from "./render.js";
 
@@ -9,9 +10,9 @@ const slotsBox = $("slots");
 const debugBox = $("debug");
 
 let templates = [];
-let memes = []; // approved bank entries
-let queue = []; // shuffled memes still to show, so Random doesn't repeat until all are seen
-let current = null; // {template, image, name} — name is used for the download file
+let memes = []; // the approved pool, each with its up/down counts
+let queue = []; // this pass of the pool: every meme once before any repeats (deck.js)
+let current = null; // {template, image, name, memeId} — name is used for the download file
 
 debugBox.checked = new URLSearchParams(location.search).has("debug");
 
@@ -47,33 +48,76 @@ function buildSlotInputs(template, values) {
     ta.addEventListener("input", () => {
       update();
       draw();
+      // Edited text is no longer the pool's meme, so it can't be rated.
+      current.memeId = null;
+      showVoteButtons();
     });
     update();
     slotsBox.append(label, ta, counter);
   }
 }
 
-async function show(template, values, name) {
+// `memeId` is set only for a meme from the pool; those are the ones visitors can rate.
+async function show(template, values, name, memeId = null) {
   select.value = template.id;
   buildSlotInputs(template, values);
   $("format").textContent = template.format;
-  current = { template, image: await loadImage(template), name };
+  current = { template, image: await loadImage(template), name, memeId };
   draw();
-}
-
-function shuffled(list) {
-  const a = [...list];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
+  showVoteButtons();
 }
 
 function showRandom() {
-  if (!queue.length) queue = shuffled(memes);
+  if (!queue.length) queue = deck(memes);
   const meme = queue.pop();
-  return show(templates.find((t) => t.id === meme.template_id), meme.slots, meme.id);
+  return show(templates.find((t) => t.id === meme.template_id), meme.slots, meme.id, meme.id);
+}
+
+// What this browser has already voted on: {memeId: "up" | "down", "memeId:report": true}.
+function myVotes() {
+  try {
+    return JSON.parse(localStorage.getItem("dharmeme-votes")) || {};
+  } catch {
+    return {};
+  }
+}
+
+function showVoteButtons() {
+  const id = current && current.memeId;
+  $("votes").hidden = !id;
+  if (!id) return;
+  const votes = myVotes();
+  $("vote-up").disabled = $("vote-down").disabled = Boolean(votes[id]);
+  $("vote-up").classList.toggle("chosen", votes[id] === "up");
+  $("vote-down").classList.toggle("chosen", votes[id] === "down");
+  $("vote-report").disabled = Boolean(votes[`${id}:report`]);
+  $("vote-report").textContent = votes[`${id}:report`] ? "Reported" : "Report";
+}
+
+async function vote(kind) {
+  const id = current.memeId;
+  const votes = myVotes();
+  votes[kind === "report" ? `${id}:report` : id] = kind === "report" ? true : kind;
+  try {
+    localStorage.setItem("dharmeme-votes", JSON.stringify(votes));
+  } catch {
+    // private browsing: the vote still counts, the button just isn't remembered
+  }
+  showVoteButtons();
+  if (kind === "report") $("status").textContent = "Reported. Thank you.";
+  try {
+    await fetch(`${API_BASE}vote`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id, vote: kind }),
+    });
+  } catch (err) {
+    console.error("vote not recorded", err);
+  }
+}
+
+for (const kind of ["up", "down", "report"]) {
+  $(`vote-${kind}`).addEventListener("click", () => vote(kind));
 }
 
 $("random").addEventListener("click", () => {

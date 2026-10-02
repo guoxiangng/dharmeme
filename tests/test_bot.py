@@ -26,12 +26,18 @@ measure = lambda text, size: len(text) * size * 0.5  # noqa: E731
 class FakeTelegram:
     def __init__(self):
         self.sent = []
+        self.markups = []  # the reply_markup of each photo, in order
+        self.calls = []
 
     def send_message(self, chat_id, text):
         self.sent.append(("message", chat_id, text))
 
-    def send_photo(self, chat_id, photo, caption=""):
+    def send_photo(self, chat_id, photo, caption="", reply_markup=None):
         self.sent.append(("photo", chat_id, photo, caption))
+        self.markups.append(reply_markup)
+
+    def call(self, method, payload):
+        self.calls.append((method, payload))
 
 
 def make_bot(llm=None, per_ip=5, seed=True):

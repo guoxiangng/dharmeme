@@ -66,7 +66,7 @@ def get_bot():
         renderer = Renderer(HERE / "images", HERE / "Anton-Regular.ttf")
         owner = os.environ.get("DHARMEME_OWNER_CHAT", "").strip()
         _bot = (Bot(pool, limits, get_llm, TEMPLATES, renderer, TelegramApi(token),
-                    int(owner) if owner else None),
+                    int(owner) if owner else None, _feedback()),
                 webhook_secret(token))
     return _bot
 
@@ -74,6 +74,21 @@ def get_bot():
 def _owner_bot():
     configured = get_bot()
     return configured[0] if configured and configured[0].owner_chat_id else None
+
+
+def _ask_owner_to_review(meme: dict, reason: str) -> None:
+    """A reported or poorly rated meme goes to the owner's chat; it is never auto-hidden."""
+    bot = _owner_bot()
+    if bot:
+        bot.ask_owner_to_review(meme, reason)
+
+
+@cache
+def _feedback():
+    from dharmeme.feedback import Feedback
+
+    pool, _ = _engine()
+    return Feedback(pool.store, _ask_owner_to_review)
 
 
 def ask_owner(memes: list[dict]) -> int:
@@ -131,7 +146,7 @@ def mark_pending_asked() -> dict:
 @cache
 def _api() -> Api:
     pool, limits = _engine()
-    return Api(pool, limits, get_llm, TEMPLATES, get_bot)
+    return Api(pool, limits, get_llm, TEMPLATES, get_bot, _feedback())
 
 
 def set_telegram_webhook(url: str) -> dict:

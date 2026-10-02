@@ -13,6 +13,7 @@ import urllib.request
 import uuid
 
 from .api import MESSAGES
+from .feedback import weight
 from .prompt import TOPIC_MAX, write_meme
 
 HELP = (
@@ -21,7 +22,10 @@ HELP = (
     "/meme <topic> - a meme about your topic\n\n"
     "Or just send me a topic."
 )
-APPROVE, REJECT = "ok:", "no:"  # callback data prefixes on the owner's buttons
+# Callback data is a 3-character prefix followed by the meme id.
+APPROVE, REJECT = "ok:", "no:"  # the owner's buttons
+UP, DOWN, REPORT = "up:", "dn:", "rp:"  # everyone's buttons under a pool meme
+VOTES = {UP: "up", DOWN: "down", REPORT: "report"}
 COMMANDS = [
     {"command": "random", "description": "A random meme"},
     {"command": "meme", "description": "A meme about your topic"},
@@ -72,7 +76,7 @@ class TelegramApi:
 
 class Bot:
     def __init__(self, pool, limits, get_llm, templates: list[dict], renderer, telegram,
-                 owner_chat_id: int | None = None) -> None:
+                 owner_chat_id: int | None = None, feedback=None) -> None:
         self.pool = pool
         self.limits = limits
         self.get_llm = get_llm
@@ -80,24 +84,51 @@ class Bot:
         self.renderer = renderer
         self.telegram = telegram
         self.owner_chat_id = owner_chat_id  # the only chat that is asked to approve memes
+        self.feedback = feedback  # None = memes are sent without vote buttons
 
-    def ask_owner(self, meme: dict) -> None:
-        """Send the owner a pending meme with Approve and Reject buttons."""
+    def ask_owner(self, meme: dict, caption: str = "Pending. Publish it?",
+                  labels: tuple[str, str] = ("Approve", "Reject")) -> None:
+        """Send the owner a meme to decide on: two buttons, in their chat only."""
+        if self.owner_chat_id is None:
+            return
         buttons = [{"text": label, "callback_data": f"{prefix}{meme['id']}"}
-                   for label, prefix in (("Approve", APPROVE), ("Reject", REJECT))]
+                   for label, prefix in zip(labels, (APPROVE, REJECT))]
         photo = self.renderer.render(self.templates[meme["template_id"]], meme["slots"])
-        self.telegram.send_photo(self.owner_chat_id, photo, "Pending. Publish it?",
+        self.telegram.send_photo(self.owner_chat_id, photo, caption,
                                  {"inline_keyboard": [buttons]})
 
+    def ask_owner_to_review(self, meme: dict, reason: str) -> None:
+        """A live meme was reported or rated poorly: keep it in the pool, or remove it?"""
+        self.ask_owner(meme, f"{reason} Keep it in the pool?", ("Keep", "Remove"))
+
     def handle_button(self, query: dict) -> None:
-        """A press on Approve or Reject. Only presses from the owner's chat count."""
         data = query.get("data") or ""
+        prefix, meme_id = data[:3], data[3:]
+        if prefix in VOTES:
+            self.handle_vote(query, VOTES[prefix], meme_id)
+        else:
+            self.handle_decision(query, prefix, meme_id)
+
+    def handle_vote(self, query: dict, kind: str, meme_id: str) -> None:
+        """Thumbs up, thumbs down or Report, from anyone."""
+        voter = f"tg-{(query.get('from') or {}).get('id')}"
+        if self.feedback is None or not self.limits.allow_vote(voter):
+            text = "Not now, sorry."
+        else:
+            result = self.feedback.vote(voter, meme_id, kind)
+            text = {"ok": "Reported. Thank you." if kind == "report" else "Thanks!",
+                    "already": "You already did that for this one.",
+                    "unknown": "That meme is no longer in the pool."}[result]
+        self.telegram.call("answerCallbackQuery", {"callback_query_id": query["id"], "text": text})
+
+    def handle_decision(self, query: dict, prefix: str, meme_id: str) -> None:
+        """The owner's Approve/Reject (or Keep/Remove). Only their chat's presses count."""
         chat_id = ((query.get("message") or {}).get("chat") or {}).get("id")
-        status = {APPROVE: "approved", REJECT: "rejected"}.get(data[: len(APPROVE)])
+        status = {APPROVE: "approved", REJECT: "rejected"}.get(prefix)
         if self.owner_chat_id is None or chat_id != self.owner_chat_id or status is None:
             text = "Not allowed."
-        elif self.pool.set_status(data[len(APPROVE):], status):
-            text = "Published." if status == "approved" else "Rejected."
+        elif self.pool.set_status(meme_id, status):
+            text = "In the pool." if status == "approved" else "Not in the pool."
         else:
             text = "That meme is not in the pool."
         self.telegram.call("answerCallbackQuery", {"callback_query_id": query["id"], "text": text})
@@ -133,14 +164,19 @@ class Bot:
 
     def send(self, chat_id: int, meme: dict, caption: str = "") -> None:
         photo = self.renderer.render(self.templates[meme["template_id"]], meme["slots"])
-        self.telegram.send_photo(chat_id, photo, caption)
+        markup = None
+        if self.feedback is not None and "id" in meme:  # a pool meme; topic memes have no id
+            buttons = [{"text": label, "callback_data": f"{prefix}{meme['id']}"}
+                       for label, prefix in (("👍", UP), ("👎", DOWN), ("Report", REPORT))]
+            markup = {"inline_keyboard": [buttons]}
+        self.telegram.send_photo(chat_id, photo, caption, markup)
 
     def send_random(self, chat_id: int, caption: str = "") -> None:
         memes = [m for m in self.pool.approved() if m["template_id"] in self.templates]
         if not memes:
             self.telegram.send_message(chat_id, caption or "The meme pool is empty.")
             return
-        self.send(chat_id, random.choice(memes), caption)
+        self.send(chat_id, random.choices(memes, [weight(m) for m in memes])[0], caption)
 
     def send_for_topic(self, chat_id: int, topic: str) -> None:
         if not 1 <= len(topic) <= TOPIC_MAX:

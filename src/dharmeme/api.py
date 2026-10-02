@@ -2,6 +2,7 @@
 
     GET  /memes     -> the approved pool, for the page's Random button (no LLM)
     POST /meme      -> {"topic": "..."} -> a meme for the topic, or a fallback
+    POST /vote      -> {"id": "...", "vote": "up|down|report"} on a pool meme (no LLM)
     POST /telegram  -> a Telegram update (webhook), if a bot is configured
 
 CORS is configured on the Function URL, so no CORS headers are added here.
@@ -10,6 +11,7 @@ import base64
 import hmac
 import json
 
+from .feedback import KINDS
 from .prompt import TOPIC_MAX, write_meme
 
 MESSAGES = {
@@ -40,11 +42,13 @@ def _fallback(reason: str) -> dict:
 
 
 class Api:
-    def __init__(self, pool, limits, get_llm, templates: list[dict], get_bot=None) -> None:
+    def __init__(self, pool, limits, get_llm, templates: list[dict], get_bot=None,
+                 feedback=None) -> None:
         self.pool = pool
         self.limits = limits
         self.get_llm = get_llm  # called only for a prompt request, so /memes stays light
         self.templates = templates
+        self.feedback = feedback
         # Returns (bot, webhook secret), or None while no Telegram bot is configured.
         self.get_bot = get_bot or (lambda: None)
 
@@ -78,7 +82,25 @@ class Api:
             if method != "POST":
                 return _response(405, {"error": "use POST"})
             return self.meme(event, http["sourceIp"])
+        if path == "/vote" and self.feedback is not None:
+            if method != "POST":
+                return _response(405, {"error": "use POST"})
+            return self.vote(event, http["sourceIp"])
         return _response(404, {"error": "not found"})
+
+    def vote(self, event: dict, ip: str) -> dict:
+        try:
+            data = json.loads(_body(event))
+            meme_id, kind = data["id"], data["vote"]
+        except (ValueError, KeyError, TypeError):
+            return _response(400, {"error": 'send {"id": "...", "vote": "up|down|report"}'})
+        if not isinstance(meme_id, str) or len(meme_id) > 64 or kind not in KINDS:
+            return _response(400, {"error": 'send {"id": "...", "vote": "up|down|report"}'})
+        voter = f"ip-{ip}"
+        if not self.limits.allow_vote(voter):
+            return _response(429, {"error": "too many votes today"})
+        result = self.feedback.vote(voter, meme_id, kind)
+        return _response(404 if result == "unknown" else 200, {"result": result})
 
     def meme(self, event: dict, ip: str) -> dict:
         try:

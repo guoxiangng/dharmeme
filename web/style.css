@@ -67,7 +67,20 @@ label { display: block; font-weight: 600; margin: 0.75rem 0 0.25rem; }
 .prompt { margin-top: 1rem; }
 .prompt-row { display: flex; gap: 0.5rem; }
 .prompt-row input { flex: 1; min-width: 0; }
-button:disabled { opacity: 0.6; cursor: wait; }
+button:disabled { opacity: 0.6; cursor: default; }
+#make:disabled { cursor: wait; }
+
+.votes { display: inline-flex; align-items: center; gap: 0.5rem; margin-left: auto; }
+.votes button.secondary { padding: 0.45rem 0.7rem; }
+.votes button.chosen { border-color: var(--accent); opacity: 1; }
+button.link {
+  color: var(--muted);
+  background: none;
+  padding: 0.3rem 0.2rem;
+  font-weight: 400;
+  font-size: 0.85rem;
+  text-decoration: underline;
+}
 
 select, textarea, input[type="text"] {
   width: 100%;

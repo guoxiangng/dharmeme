@@ -179,5 +179,5 @@ def test_get_memes_returns_only_the_approved_pool():
              {"id": "a3", "status": "pending", "created": "2026-10-02", **GOOD}]
     assert pool.add_missing(newer) == 1
     response = api.handle(event(method="GET", path="/memes"))
-    assert body(response) == [{"id": "a1", **GOOD}]
+    assert body(response) == [{"id": "a1", **GOOD, "up": 0, "down": 0}]
     assert "max-age" in response["headers"]["cache-control"]

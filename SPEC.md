@@ -91,6 +91,22 @@ live list: once the generator and the bot change the pool, the file is not updat
   that one chat with **Approve** and **Reject** buttons, and a press counts only when it
   comes from that chat. The `send_pending` admin invoke re-sends whatever is still pending.
 
+## 4a. Feedback — thumbs up, thumbs down, Report
+
+Under every pool meme, on the page and in the bot (topic memes are not in the pool and
+have no buttons). `POST /vote {"id", "vote": "up"|"down"|"report"}`; no LLM call.
+
+- **One thumb and one report per voter per meme** (voter = IP on the web, user id in
+  Telegram), remembered for 90 days, plus a daily allowance of 300 votes per voter.
+- **Votes never change how often a meme is shown.** Random deals the whole pool once per
+  pass (`web/deck.js`), so every meme gets the same exposure. Votes only nudge the order
+  within a pass: by up-rate, not by count, and only once a meme has 10 votes. 500 thumbs up
+  earn no more than 10 at the same rate, so nothing snowballs while the pool is young. The
+  bot's `/random` is a weighted pick with the same bounded weights (0.5 to 1.5).
+- **Nothing is hidden automatically.** The first report of a meme, or a meme reaching 20
+  votes with an up-rate under 30%, is sent once to the owner's chat with Keep and Remove
+  buttons. Until the owner decides, it stays in the pool.
+
 ## 5. Prompt feature — `POST /meme` → `write_meme(topic) -> {template_id, slots}`
 
 One LLM call in the Lambda. The system prompt contains the tone rules (§1) and the catalog:

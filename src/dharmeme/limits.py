@@ -16,6 +16,13 @@ class Limits:
         self.tz = timezone(timedelta(hours=utc_offset))  # the day rolls over in local time
         self.now = now
 
+    def allow_vote(self, voter: str, per_day: int = 300) -> bool:
+        """Count one vote against the voter's daily allowance. Votes cost no LLM call;
+        this only stops a script from writing to the table without end."""
+        now = self.now().astimezone(self.tz)
+        expires = int((now + timedelta(days=KEEP_DAYS)).timestamp())
+        return self.store.increment(PK, f"votes#{voter}#{now:%Y-%m-%d}", per_day, expires)
+
     def allow(self, ip: str) -> bool:
         """Count one request against both limits. False if either is used up.
 

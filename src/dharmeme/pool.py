@@ -12,8 +12,10 @@ class Pool:
         self.store = store
 
     def approved(self) -> list[dict]:
+        """The memes Random serves, each with its vote counts."""
         return [
-            {k: item[k] for k in FIELDS}
+            {**{k: item[k] for k in FIELDS},
+             "up": int(item.get("up", 0)), "down": int(item.get("down", 0))}
             for item in self.store.items(PK)
             if item["status"] == "approved"
         ]
