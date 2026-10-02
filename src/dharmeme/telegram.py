@@ -101,6 +101,11 @@ class Bot:
         else:
             text = "That meme is not in the pool."
         self.telegram.call("answerCallbackQuery", {"callback_query_id": query["id"], "text": text})
+        if status and text != "Not allowed.":
+            # Replace the buttons with the outcome, so the chat shows what is decided.
+            message = query["message"]
+            self.telegram.call("editMessageCaption", {
+                "chat_id": chat_id, "message_id": message.get("message_id"), "caption": text})
 
     def handle(self, update: dict) -> None:
         if "callback_query" in update:

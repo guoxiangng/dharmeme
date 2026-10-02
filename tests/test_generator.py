@@ -105,16 +105,33 @@ def test_owner_is_asked_about_a_pending_meme():
 def test_only_the_owner_can_approve_or_reject():
     pool = pending_pool()
     bot, telegram = make_owner_bot(pool)
+    answers = lambda: [p["text"] for m, p in telegram.calls if m == "answerCallbackQuery"]  # noqa: E731
     bot.handle(button(APPROVE, "a1", chat_id=7))
     assert pool.approved() == []
-    assert telegram.calls[-1][1]["text"] == "Not allowed."
+    assert answers()[-1] == "Not allowed."
+    assert [m for m, _ in telegram.calls] == ["answerCallbackQuery"]  # message left alone
 
     bot.handle(button(APPROVE, "a1", chat_id=99))
     assert len(pool.approved()) == 1
+    # the buttons are replaced by the outcome
+    assert telegram.calls[-1] == ("editMessageCaption",
+                                  {"chat_id": 99, "message_id": None, "caption": "Published."})
     bot.handle(button(REJECT, "a1", chat_id=99))
     assert pool.approved() == [] and pool.all()[0]["status"] == "rejected"
     bot.handle(button(APPROVE, "missing", chat_id=99))
-    assert telegram.calls[-1][1]["text"] == "That meme is not in the pool."
+    assert answers()[-1] == "That meme is not in the pool."
+
+
+def test_a_meme_is_only_ever_offered_to_the_owner_once():
+    pool = pending_pool()
+    pool.add(dict(SEED, id="a2", status="pending"))
+    assert [m["id"] for m in pool.unasked_pending()] == ["a1", "a2"]
+    pool.mark_asked("a1")
+    assert [m["id"] for m in pool.unasked_pending()] == ["a2"]
+    # Whatever the owner then does with a1, it is not offered again.
+    pool.set_status("a1", "approved")
+    pool.set_status("a1", "pending")
+    assert [m["id"] for m in pool.unasked_pending()] == ["a2"]
 
 
 def test_buttons_do_nothing_while_no_owner_is_set():
