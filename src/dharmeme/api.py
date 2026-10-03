@@ -16,20 +16,29 @@ from .feedback import KINDS
 from .prompt import HANS, to_simplified, write_meme
 from .themes import as_topic
 
+# Every fallback comes with a meme from the vetted pool, so each message says so: a
+# visitor should never take the pool meme for the AI's answer, or the limit for a fault.
 MESSAGES = {
-    "limit": "The meme well is empty. All things are impermanent — try tomorrow.",
-    "declined": "Some topics are best met with noble silence. Here is another one instead.",
-    "error": "The mind wandered. Here is another one instead.",
+    "limit": "You've used up your free AI memes for today. They reset at midnight "
+             "Singapore time (SGT). Meanwhile, here's one from the vetted pool.",
+    "cap": "Fresh AI memes are closed for today. They open again at midnight Singapore "
+           "time (SGT). Meanwhile, here's one from the vetted pool.",
+    "declined": "Some topics are best met with noble silence. Here's one from the vetted "
+                "pool instead.",
+    "error": "The mind wandered and no fresh meme came out. Here's one from the vetted "
+             "pool instead.",
 }
 MESSAGES_ZH = {
-    "limit": "今天的梗圖發完了。諸行無常，明天再來。",
-    "declined": "這個題目，還是保持聖默然吧。",
-    "error": "剛剛打妄想了，請再試一次。",
+    "limit": "你今天的免費 AI 梗圖已經用完了，新加坡時間午夜 12 點重置。先送你一張梗圖庫裡的。",
+    "cap": "今天的 AI 新梗圖已經圓滿結束，新加坡時間午夜 12 點再開張。先送你一張梗圖庫裡的。",
+    "declined": "這個題目，還是保持聖默然吧。先送你一張梗圖庫裡的。",
+    "error": "剛剛打妄想了，沒寫出新的。先送你一張梗圖庫裡的。",
 }
 MESSAGES_HANS = {
-    "limit": "今天的梗图发完了。诸行无常，明天再来。",
-    "declined": "这个题目，还是保持圣默然吧。",
-    "error": "刚刚打妄想了，请再试一次。",
+    "limit": "你今天的免费 AI 梗图已经用完了，新加坡时间午夜 12 点重置。先送你一张梗图库里的。",
+    "cap": "今天的 AI 新梗图已经圆满结束，新加坡时间午夜 12 点再开张。先送你一张梗图库里的。",
+    "declined": "这个题目，还是保持圣默然吧。先送你一张梗图库里的。",
+    "error": "刚刚打妄想了，没写出新的。先送你一张梗图库里的。",
 }
 MESSAGES_BY_LANG = {"en": MESSAGES, "zh": MESSAGES_ZH, HANS: MESSAGES_HANS}
 POOL_CACHE_SECONDS = 300
@@ -150,8 +159,9 @@ class Api:
         except (ValueError, KeyError, TypeError, AttributeError):
             return _response(400, {"error": 'send {"theme": "<id of a listed theme>"}'})
 
-        if not self.limits.allow(ip):
-            return _fallback("limit", lang)
+        refused = self.limits.check(ip)
+        if refused:
+            return _fallback(refused, lang)
         result = write_meme(as_topic(theme), self.get_llm(), self.templates, pool_lang(lang))
         if "fallback" in result:
             return _fallback(result["fallback"], lang)

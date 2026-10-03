@@ -188,7 +188,7 @@ async function makeForTheme(theme, lang = "en") {
     if (!response.ok) throw new Error(reply.error || response.status);
   } catch (err) {
     console.error(err);
-    reply = { fallback: "error", message: "The mind wandered. Here is another one instead." };
+    reply = { fallback: "error", message: "The mind wandered and no fresh meme came out. Here's one from the vetted pool instead." };
   }
   for (const b of buttons) b.disabled = false;
   canvas.scrollIntoView({ behavior: "smooth", block: "nearest" });

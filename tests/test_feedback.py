@@ -1,7 +1,7 @@
 """Thumbs up, thumbs down and Report (SPEC.md §4a), on the API and in the bot."""
 import json
 
-from dharmeme.api import Api
+from dharmeme.api import MESSAGES_HANS, Api
 from dharmeme.catalog import load_catalog
 from dharmeme.feedback import Feedback, up_rate, weight
 from dharmeme.limits import Limits
@@ -173,7 +173,7 @@ def test_chinese_on_the_api_is_written_once_and_read_in_either_script():
     assert all(h["lang"] == "zh" and h["slots"] == zh["slots"]
                for h in feedback.store.items("fresh"))  # stored in Traditional either way
     declined = ask(api, {"theme": "nianfo", "lang": "zh-hans"})
-    assert declined == {"fallback": "declined", "message": "这个题目，还是保持圣默然吧。"}
+    assert declined == {"fallback": "declined", "message": MESSAGES_HANS["declined"]}
 
     pool.add({"id": "z1", "status": "approved", "created": "2026-10-03", "lang": "zh", **zh})
     pool.add({"id": "a1", "status": "approved", "created": "2026-10-03", **GOOD})

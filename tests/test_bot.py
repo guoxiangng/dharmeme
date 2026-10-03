@@ -183,3 +183,16 @@ def test_a_failing_update_still_answers_200():
     event = {"rawPath": "/telegram", "headers": {"x-telegram-bot-api-secret-token": "s"},
              "body": "{}", "requestContext": {"http": {"method": "POST", "sourceIp": "1.1.1.1"}}}
     assert api.handle(event)["statusCode"] == 200
+
+
+def test_the_owner_alert_names_the_telegram_user_who_hit_their_limit():
+    llm = StubLLM(GOOD)
+    bot, telegram = make_bot(llm, per_ip=1)
+    alerts = []
+    bot.limits.alert = lambda *a: alerts.append(a)
+    for _ in range(2):
+        query = tap("karma", user=7)
+        query["callback_query"]["from"].update(username="ann", first_name="Ann")
+        bot.handle(query)
+    assert alerts == [("limit", "tg-7", "@ann (Ann)")]
+    assert telegram.sent[-1][3] == MESSAGES["limit"]

@@ -212,8 +212,16 @@ the limits even if the LLM call then fails.
   the real ceiling on cost.
 - Dates in SGT. Increment is an atomic `ADD` with a condition `count < limit`, checked before
   the Bedrock call; items carry a TTL of 2 days.
-- Over either limit: `fallback: limit` with an on-theme message ("The meme well is empty. All
-  things are impermanent — try tomorrow.").
+- Over the visitor's own limit: `fallback: limit` ("You've used up your free AI memes for
+  today", reset at midnight SGT; the number is not mentioned). Over the global cap:
+  `fallback: cap`, the same message for everyone ("Fresh AI memes are closed for today").
+  Both come with a meme from the vetted pool and say so, so nobody takes a limit for a
+  fault.
+- The owner's chat is told the first time each day that a visitor hits their limit
+  (Telegram users by @handle and first name; website visitors only as "a website
+  visitor") and the first time the global cap is hit. Not when the owner hits their own.
+- The limits count only requests for a fresh themed meme. Random, votes (counted
+  separately), and the daily generator never touch them.
 - Lambda reserved concurrency: 5. AWS Budgets alert as the backstop (alerts only; the caps above
   are the real stop). Cloudflare Turnstile if abuse appears.
 

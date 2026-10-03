@@ -63,6 +63,13 @@ COMMANDS = [
 ]
 
 
+def display_name(user: dict) -> str:
+    """How a Telegram user is named to the owner: "@handle (First)", or the first name
+    alone when they have no username."""
+    first = user.get("first_name") or "someone"
+    return f"@{user['username']} ({first})" if user.get("username") else first
+
+
 def webhook_secret(token: str) -> str:
     """The secret Telegram sends back with each update, derived from the bot token."""
     return hashlib.sha256(f"dharmeme-webhook:{token}".encode()).hexdigest()[:48]
@@ -205,11 +212,12 @@ class Bot:
             note = f"{theme['label']}: contemplating…" if theme else "That theme is gone."
         self.answer(query, note)
         if theme and chat_id is not None:
-            voter = f"tg-{(query.get('from') or {}).get('id')}"
+            sender = query.get("from") or {}
+            voter = f"tg-{sender.get('id')}"
             # Chinese is always written from the Traditional theme, whatever the script
             # it is shown in.
             source = self.themes[pool_lang(lang)].get(theme_id, theme)
-            self.send_fresh(chat_id, as_topic(source), voter, lang)
+            self.send_fresh(chat_id, as_topic(source), voter, lang, display_name(sender))
 
     def handle_vote(self, query: dict, kind: str, meme_id: str) -> None:
         """Thumbs up, thumbs down or Report, from anyone."""
@@ -299,14 +307,16 @@ class Bot:
             return
         self.send(chat_id, random.choices(pool, [weight(m) for m in pool])[0], lang=lang)
 
-    def send_fresh(self, chat_id: int, topic: str, voter: str, lang: str = "en") -> None:
+    def send_fresh(self, chat_id: int, topic: str, voter: str, lang: str = "en",
+                   who: str = "") -> None:
         """Have the model write a meme on `topic` and send it, within `voter`'s limit.
 
         Any fallback (limit reached, declined, error) is a short message with a meme from
         the pool of that language, or the message alone if that pool is empty.
         """
         written_in = pool_lang(lang)
-        result = ({"fallback": "limit"} if not self.limits.allow(voter) else
+        refused = self.limits.check(voter, who)
+        result = ({"fallback": refused} if refused else
                   write_meme(topic, self.get_llm(), list(self.templates.values()), written_in))
         if "fallback" not in result:
             if self.feedback is not None:

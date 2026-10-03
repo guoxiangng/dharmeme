@@ -36,8 +36,26 @@ def _engine() -> tuple[Pool, Limits]:
         per_ip=int(os.environ.get("DHARMEME_LIMIT_PER_IP", "5")),
         per_day=int(os.environ.get("DHARMEME_LIMIT_PER_DAY", "200")),
         utc_offset=int(os.environ.get("DHARMEME_UTC_OFFSET", "8")),
+        alert=_limit_alert,
     )
     return pool, limits
+
+
+def _limit_alert(reason: str, ip: str, who: str) -> None:
+    """Tell the owner, once a day each, that someone used up their fresh memes or that
+    the day's total is used up. Telegram users are named; website visitors are not."""
+    owner = os.environ.get("DHARMEME_OWNER_CHAT", "").strip()
+    bot = _owner_bot()
+    if not bot or ip == f"tg-{owner}":
+        return
+    if reason == "cap":
+        text = (f"Daily cap reached: {_engine()[1].per_day} fresh memes today. Fresh memes "
+                "are off for everyone until midnight SGT.")
+    elif ip.startswith("tg-"):
+        text = f"{who or 'A Telegram user'} used up their fresh memes for today."
+    else:
+        text = "A website visitor used up their fresh memes for today."
+    bot.telegram.send_message(bot.owner_chat_id, text)
 
 
 def _telegram_token() -> str | None:

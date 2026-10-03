@@ -155,8 +155,29 @@ def test_global_cap_stops_everyone_without_an_llm_call():
     api, _ = make_api(llm, per_day=2)
     for ip in ("1.1.1.1", "2.2.2.2"):
         assert "template_id" in body(api.handle(event(body={"theme": "karma"}, ip=ip)))
-    assert body(api.handle(event(body={"theme": "karma"}, ip="3.3.3.3")))["fallback"] == "limit"
+    assert body(api.handle(event(body={"theme": "karma"}, ip="3.3.3.3")))["fallback"] == "cap"
     assert len(llm.calls) == 2
+
+
+def test_limits_say_which_limit_and_alert_once_a_day_each():
+    alerts = []
+    limits = Limits(MemoryStore(), per_ip=1, per_day=2,
+                    alert=lambda *a: alerts.append(a))
+    assert limits.check("tg-1", "@ann (Ann)") is None
+    assert limits.check("tg-1", "@ann (Ann)") == "limit"
+    assert limits.check("tg-1", "@ann (Ann)") == "limit"
+    assert limits.check("2.2.2.2") is None
+    assert limits.check("3.3.3.3") == "cap"
+    assert limits.check("4.4.4.4") == "cap"
+    assert alerts == [("limit", "tg-1", "@ann (Ann)"), ("cap", "3.3.3.3", "")]
+
+
+def test_a_failing_alert_never_blocks_the_visitor():
+    def broken(*_):
+        raise RuntimeError("telegram down")
+    limits = Limits(MemoryStore(), per_ip=1, alert=broken)
+    limits.check("1.2.3.4")
+    assert limits.check("1.2.3.4") == "limit"
 
 
 def test_limits_reset_the_next_day_in_local_time():
