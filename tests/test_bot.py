@@ -196,3 +196,12 @@ def test_the_owner_alert_names_the_telegram_user_who_hit_their_limit():
         bot.handle(query)
     assert alerts == [("limit", "tg-7", "@ann (Ann)")]
     assert telegram.sent[-1][3] == MESSAGES["limit"]
+
+
+def test_a_fresh_themed_meme_says_what_its_thumbs_up_does():
+    from dharmeme.feedback import Feedback
+    from dharmeme.telegram import NOMINATE
+    bot, telegram = make_bot(StubLLM(GOOD))
+    bot.feedback = Feedback(bot.pool.store)
+    bot.handle(tap("karma"))
+    assert telegram.sent[-1][0] == "photo" and telegram.sent[-1][3] == NOMINATE

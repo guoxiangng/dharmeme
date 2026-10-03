@@ -36,14 +36,18 @@ APPROVE, REJECT = "ok:", "no:"  # the owner's buttons
 UP, DOWN, REPORT = "up:", "dn:", "rp:"  # everyone's buttons under a pool meme
 VOTES = {UP: "up", DOWN: "down", REPORT: "report"}
 THEME = "th:"  # a button in the English theme list
+# Under a fresh themed meme: what its thumbs up does, or nobody would guess.
+NOMINATE = "Like it? Tap 👍 to suggest it for the public pool."
 # The Chinese feature in its two scripts: same themes, same pool, same context. Chinese
 # is stored once, in Traditional ("zh"); Simplified is that text converted.
 CHINESE = {
     "zh": {"prefix": "zh:", "script": "tc", "pick": "選一個主題：", "random": "隨機一張",
            "working": "{label}：參究中…", "gone": "這個主題不在了。", "report": "檢舉",
+           "nominate": "喜歡嗎？按 👍 推薦它進梗圖庫。",
            "empty": "梗圖庫還是空的。用 /chinesememe_tw 選個主題吧。", "messages": MESSAGES_ZH},
     HANS: {"prefix": "zs:", "script": "sc", "pick": "选一个主题：", "random": "随机一张",
            "working": "{label}：参究中…", "gone": "这个主题不在了。", "report": "举报",
+           "nominate": "喜欢吗？按 👍 推荐它进梗图库。",
            "empty": "梗图库还是空的。用 /chinesememe 选个主题吧。", "messages": MESSAGES_HANS},
 }
 # command -> (what it does, in which script)
@@ -322,6 +326,9 @@ class Bot:
             if self.feedback is not None:
                 result = {**result, "fresh": True,
                           "id": self.feedback.keep_fresh(result, written_in)}
+                hint = CHINESE[lang]["nominate"] if lang in CHINESE else NOMINATE
+                self.send(chat_id, result, hint, lang)
+                return
             self.send(chat_id, result, lang=lang)
             return
         if lang not in CHINESE:

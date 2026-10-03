@@ -11,8 +11,8 @@ const debugBox = $("debug");
 
 // The Chinese section in its two scripts: same themes, same pool, same context.
 const CHINESE = {
-  "zh-hans": { script: "sc", random: "随机一张", working: "参究中…", empty: "梗图库还是空的，选个主题现写一张吧。" },
-  zh: { script: "tc", random: "隨機一張", working: "參究中…", empty: "梗圖庫還是空的，選個主題現寫一張吧。" },
+  "zh-hans": { script: "sc", random: "随机一张", working: "参究中…", nominate: "喜欢吗？按 👍 推荐它进梗图库。", empty: "梗图库还是空的，选个主题现写一张吧。" },
+  zh: { script: "tc", random: "隨機一張", working: "參究中…", nominate: "喜歡嗎？按 👍 推薦它進梗圖庫。", empty: "梗圖庫還是空的，選個主題現寫一張吧。" },
 };
 
 let templates = [];
@@ -200,6 +200,12 @@ async function makeForTheme(theme, lang = "en") {
   $("status").textContent = "";
   await show(templates.find((t) => t.id === reply.template_id), reply.slots, theme.id,
     { memeId: reply.id || null, fresh: true, lang });
+  // Nobody guesses what a thumbs up on a fresh meme does, so say it.
+  if (reply.id) {
+    $("status").textContent = lang === "en"
+      ? "Like it? Tap 👍 to suggest it for the public pool."
+      : CHINESE[lang].nominate;
+  }
 }
 
 function buildThemeButtons(container, list, lang) {
