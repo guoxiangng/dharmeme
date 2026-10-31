@@ -31,6 +31,11 @@ Parameters:
     Type: String
     Default: "cron(0 1 * * ? *)"    # 09:00 SGT daily
     Description: EventBridge schedule expression (UTC) for the generator.
+  GenerateState:
+    Type: String
+    Default: DISABLED    # off since 2026-10-31: the pool is big enough and nobody vets
+    AllowedValues: [ENABLED, DISABLED]
+    Description: Whether the daily generator runs.
   LimitPerIp:
     Type: Number
     Default: 5
@@ -91,6 +96,7 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: !Ref GenerateCron
+            State: !Ref GenerateState
             Input: '{"admin": "generate"}'
       Policies:
         - DynamoDBCrudPolicy: { TableName: !Ref Table }

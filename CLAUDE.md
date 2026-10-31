@@ -105,6 +105,10 @@ point-in-time restore into a temporary table.
 
 ## Open items
 
+- **The daily generator is off** (since 2026-10-31; template parameter `GenerateState`).
+  The owner stopped vetting around 2026-10-11, leaving about 300 memes `pending` (never
+  served). Don't turn it back on, or change those pending memes, without the owner.
+
 - **Native Chinese formats** (熊猫头 reaction images) are wanted but unsourced. imgflip
   doesn't carry them: its "panda" templates are ordinary pandas or people in costume. The
   owner would need to supply blank images, or a site with direct image links.

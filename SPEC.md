@@ -81,7 +81,8 @@ live list: once the generator and the bot change the pool, the file is not updat
   or over `max_chars`.
 - `review.html` renders the seed for local review (`build_site.py --review`); it is never
   deployed.
-- **Daily generator** (`generator.py`, an EventBridge schedule on the same Lambda): two LLM
+- **Daily generator** (`generator.py`, an EventBridge schedule on the same Lambda; **off
+  since 2026-10-31**, `GenerateState=ENABLED` on deploy turns it back on): two LLM
   calls a day whatever the traffic. The first writes one meme for each of the N templates
   with the fewest memes, shown what the pool already has. Each of those templates is
   paired with a theme from that language's list, taking the themes the generator has
