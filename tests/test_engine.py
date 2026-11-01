@@ -181,11 +181,14 @@ def test_a_failing_alert_never_blocks_the_visitor():
 
 
 def test_limits_reset_the_next_day_in_local_time():
-    clock = [datetime(2026, 10, 1, 15, 59, tzinfo=timezone.utc)]  # 23:59 SGT
+    # A year ahead: the store's counters expire in real time, so a fixed past date
+    # would look expired and reset early.
+    year = datetime.now(timezone.utc).year + 1
+    clock = [datetime(year, 10, 1, 15, 59, tzinfo=timezone.utc)]  # 23:59 SGT
     limits = Limits(MemoryStore(), per_ip=1, now=lambda: clock[0])
     assert limits.allow("1.2.3.4")
     assert not limits.allow("1.2.3.4")
-    clock[0] = datetime(2026, 10, 1, 16, 1, tzinfo=timezone.utc)  # 00:01 SGT, next day
+    clock[0] = datetime(year, 10, 1, 16, 1, tzinfo=timezone.utc)  # 00:01 SGT, next day
     assert limits.allow("1.2.3.4")
 
 

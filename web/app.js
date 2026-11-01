@@ -1,6 +1,7 @@
 import { API_BASE } from "./config.js";
 import { deck } from "./deck.js";
 import { loadImage } from "./images.js";
+import { offered } from "./season.js";
 import { FONT_FAMILY, renderMeme } from "./render.js";
 
 const $ = (id) => document.getElementById(id);
@@ -226,7 +227,7 @@ function showChinese(lang) {
   remember("dharmeme-zh", lang);
   for (const key of Object.keys(CHINESE)) $(`script-${key}`).classList.toggle("chosen", key === lang);
   $("zh-random").textContent = CHINESE[lang].random;
-  buildThemeButtons($("themes-zh"), themes[lang], lang);
+  buildThemeButtons($("themes-zh"), offered(themes[lang]), lang);
 }
 
 for (const lang of Object.keys(CHINESE)) {
@@ -265,7 +266,7 @@ async function main() {
   ]);
   pools.en = { memes: english, queue: [] };
   for (const t of templates) select.add(new Option(t.name, t.id));
-  buildThemeButtons($("themes"), themes.en, "en");
+  buildThemeButtons($("themes"), offered(themes.en), "en");
   let saved = null;
   try {
     saved = localStorage.getItem("dharmeme-zh");

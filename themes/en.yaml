@@ -157,3 +157,51 @@ themes:
     brief: >-
       Making and dedicating merit: chanting, offerings, volunteering at the temple. The
       practitioner quietly keeps score, which rather misses the point.
+
+  # --- festivals: offered only from two weeks before to a few days after their dates.
+  # `lunar` holds Chinese lunar-calendar MM-DD dates; the build works out the real dates.
+  - id: vesak
+    label: Vesak
+    lunar: ["04-15"]
+    brief: >-
+      Vesak Day, marking the Buddha's birth, awakening and passing: bathing the Buddha,
+      temple queues, lanterns, vegetarian meals. The practitioner resolves to keep the
+      precepts all day and is tested by the crowd, the queue and the heat. The joke is on
+      the practitioner, never on the Buddha or the rites.
+  - id: ullambana
+    label: Ullambana
+    lunar: ["07-15"]
+    brief: >-
+      The Ullambana festival in the seventh lunar month: dedicating merit to parents and
+      ancestors out of filial piety, chanting for beings in the lower realms. The
+      practitioner dedicates merit to parents of countless lifetimes and is impatient
+      with the two at home. Never mock offerings, ancestors or anyone's beliefs.
+  - id: bodhi-day
+    label: Bodhi Day
+    lunar: ["12-08"]
+    brief: >-
+      The day the Buddha awakened under the Bodhi tree, marked in Chinese temples with
+      Laba congee. The practitioner sits up late hoping for insight and mostly finds
+      sleepiness, or queues for the congee more keenly than for the meditation.
+  - id: lunar-new-year
+    label: Lunar New Year
+    lunar: ["01-01"]
+    brief: >-
+      New Year at the temple: first-day prayers, a vegetarian first day, lamps lit for the
+      year ahead, then the reunion dinner. The practitioner vows equanimity for the new
+      year and meets the relatives' questions about salary and marriage.
+  - id: guanyin-day
+    label: Guanyin's day
+    lunar: ["02-19", "06-19", "09-19"]
+    brief: >-
+      One of the three days honouring Guanyin, the bodhisattva of compassion, with
+      chanting and vegetarian meals. The practitioner chants for great compassion and has
+      none left for the person cutting the queue. The joke is on the practitioner, never
+      on Guanyin.
+  - id: amitabha-day
+    label: Amitabha's birthday
+    lunar: ["11-17"]
+    brief: >-
+      Amitabha Buddha's day in Pure Land temples, with long sessions reciting his name.
+      The joke is on the practitioner's wandering mind and lost count, never on Amitabha
+      or the Pure Land.

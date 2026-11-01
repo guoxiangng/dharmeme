@@ -16,7 +16,7 @@ from dharmeme.prompt import HANS, MemeError, system_prompt, to_simplified, valid
 from dharmeme.render import Renderer, fit_text, has_cjk, tokens, wrap
 from dharmeme.store import MemoryStore
 from dharmeme.telegram import CHINESE, MESSAGES_HANS, MESSAGES_ZH, Bot
-from dharmeme.themes import THEMES_DIR, as_topic, load_themes, simplified
+from dharmeme.themes import THEMES_DIR, as_topic, load_themes, offered, simplified
 from test_bot import FakeTelegram
 from test_engine import GOOD, StubLLM
 
@@ -150,13 +150,13 @@ def test_chinesememe_is_simplified_and_chinesememe_tw_is_traditional():
     bot.handle({"message": {"chat": {"id": 42}, "text": "/chinesememe"}})
     text, buttons = labels_sent(telegram)
     assert text == "选一个主题：" and buttons[0] == {"text": "随机一张", "callback_data": "zs:random"}
-    assert [b["text"] for b in buttons[1:]] == [t["label"] for t in THEMES_HANS]
+    assert [b["text"] for b in buttons[1:]] == [t["label"] for t in offered(THEMES_HANS)]
     assert all(b["callback_data"].startswith("zs:") for b in buttons)
 
     bot.handle({"message": {"chat": {"id": 42}, "text": "/chinesememe_tw"}})
     text, buttons = labels_sent(telegram)
     assert text == "選一個主題：" and buttons[0] == {"text": "隨機一張", "callback_data": "zh:random"}
-    assert [b["text"] for b in buttons[1:]] == [t["label"] for t in THEMES_ZH]
+    assert [b["text"] for b in buttons[1:]] == [t["label"] for t in offered(THEMES_ZH)]
 
 
 def test_chinese_is_always_written_in_traditional_and_shown_in_the_script_asked_for():

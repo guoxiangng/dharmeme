@@ -12,7 +12,7 @@ from dharmeme.pool import Pool
 from dharmeme.render import Renderer, fit_text, wrap
 from dharmeme.store import MemoryStore
 from dharmeme.telegram import HELP, PICK, Bot, webhook_secret
-from dharmeme.themes import as_topic, load_themes
+from dharmeme.themes import as_topic, load_themes, offered
 from test_engine import GOOD, StubLLM
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -105,7 +105,7 @@ def test_whatever_a_stranger_types_they_get_the_theme_list_and_no_llm_call():
     method, payload = telegram.calls[0]
     assert (method, payload["text"]) == ("sendMessage", PICK)
     buttons = [b for row in payload["reply_markup"]["inline_keyboard"] for b in row]
-    assert [b["callback_data"] for b in buttons] == [f"th:{t['id']}" for t in THEMES]
+    assert [b["callback_data"] for b in buttons] == [f"th:{t['id']}" for t in offered(THEMES)]
 
 
 def test_tapping_a_theme_sends_a_fresh_meme_on_it():

@@ -9,6 +9,7 @@ description = "A Buddhist meme generator."
 requires-python = ">=3.11"
 dependencies = [
     "PyYAML",
+    "lunardate",   # festival dates for seasonal themes, worked out at build time
 ]
 
 [project.optional-dependencies]

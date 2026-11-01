@@ -65,6 +65,14 @@ These came out of specific decisions. Don't relitigate them; ask before going ag
   temp directory for this reason: building in place under OneDrive produced empty
   dependency folders and a broken deploy.
 
+- **Festival dates come from the build.** `themes.festival_dates` converts the lunar
+  dates when the site and the Lambda are built, for six years ahead; a test fails once a
+  festival has no future date, which means rebuild and redeploy. `web/season.js` and
+  `themes.offered` implement the same window; change both.
+- **Tests must not depend on a fixed past date when anything expires in real time.** The
+  in-memory store expires counters by the real clock; a limits test pinned to October
+  2026 started failing (and blocked the site's deploys) once that date passed.
+
 ## How to
 
 **Run the tests.** `pytest` and `cd web && node --test`. Both run in CI on every push,

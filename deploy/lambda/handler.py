@@ -13,6 +13,7 @@ from dharmeme.limits import Limits
 from dharmeme.llm.factory import get_provider
 from dharmeme.pool import Pool
 from dharmeme.store import DynamoStore
+from dharmeme.themes import offered
 
 HERE = Path(__file__).parent
 TEMPLATES = json.loads((HERE / "catalog.json").read_text(encoding="utf-8"))
@@ -156,7 +157,7 @@ def generate(langs: tuple[str, ...] = ("en", "zh")) -> dict:
     for lang in langs:
         added += generator.run(pool, get_llm(), TEMPLATES, status="pending", lang=lang,
                                count=count,
-                               themes=THEMES if lang == "en" else THEMES_ZH)
+                               themes=offered(THEMES if lang == "en" else THEMES_ZH))
     return {"added": [m["id"] for m in added], "sent_to_owner": ask_owner(added)}
 
 

@@ -19,7 +19,7 @@ import uuid
 from .api import MESSAGES, MESSAGES_HANS, MESSAGES_ZH, pool_lang
 from .feedback import weight
 from .prompt import HANS, to_simplified, write_meme
-from .themes import as_topic
+from .themes import as_topic, offered
 
 HELP = (
     "dharmeme: Buddhist memes. All memes are impermanent.\n\n"
@@ -185,8 +185,10 @@ class Bot:
             buttons = [{"text": ui["random"], "callback_data": f"{prefix}{RANDOM_ZH}"}]
         else:
             prefix, text, per_row, buttons = THEME, PICK, 2, []
+        # Festival themes only around their dates; a tap on an older list still works,
+        # since handle_theme looks the id up in the full list.
         buttons += [{"text": t["label"], "callback_data": f"{prefix}{t['id']}"}
-                    for t in self.themes[lang].values()]
+                    for t in offered(list(self.themes[lang].values()))]
         rows = [buttons[i : i + per_row] for i in range(0, len(buttons), per_row)]
         self.telegram.call("sendMessage", {"chat_id": chat_id, "text": text,
                                            "reply_markup": {"inline_keyboard": rows}})

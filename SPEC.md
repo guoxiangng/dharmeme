@@ -125,6 +125,14 @@ given that theme's label and brief, so nothing anyone types reaches the model. T
 for the owner too, and for the bot as for the website: typed text in the bot only brings
 up the theme list.
 
+**Festival themes are seasonal.** A theme with `lunar` dates (Chinese lunar calendar,
+`MM-DD`) is a festival: Vesak / 浴佛, Ullambana / 盂蘭盆, Bodhi Day / 臘八, Lunar New Year /
+新春, Guanyin's days / 觀音聖誕, Amitabha's birthday / 彌陀聖誕. The build works out the
+real dates for last year and the next six (`lunardate`) and ships them as `dates`. Every
+surface offers a festival only from 14 days before one of its dates to 3 days after, in
+Singapore time, listed before the evergreen themes: the site (`web/season.js`), the bot's
+theme lists and the daily generator (`themes.offered`). The API accepts any listed theme.
+
 One LLM call in the Lambda. The system prompt contains the tone rules (§1) and a random
 six of the catalog's templates (`id`, `format`, `slots` with `max_chars`), so the model
 doesn't use one favourite template every time. The user message is `Topic: <label>.

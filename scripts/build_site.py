@@ -117,7 +117,8 @@ def build(out: Path = ROOT / "_site", strict: bool = False, review: bool = False
     chinese = load_themes(THEMES_DIR / "zh.yaml")
     for name, themes in (("themes.json", load_themes()), ("themes_zh.json", chinese),
                          ("themes_zh_hans.json", simplified(chinese))):
-        labels = [{"id": t["id"], "label": t["label"]} for t in themes]
+        labels = [{"id": t["id"], "label": t["label"],
+                   **({"dates": t["dates"]} if "dates" in t else {})} for t in themes]
         (out / name).write_text(json.dumps(labels, ensure_ascii=False), encoding="utf-8")
 
     fields = ("id", "template_id", "slots")
