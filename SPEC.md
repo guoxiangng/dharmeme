@@ -18,6 +18,11 @@ sacred objects, or other religions; never target a group of people.
 Popular meme templates (imgflip and similar), stored in `templates/images/`. No AI-generated
 images.
 
+A template may carry `lang: zh` (or `en`): it is then offered only to memes in that
+language (`prompt.usable`). The native Chinese formats (熊猫头路过, 熊猫头坐地, 熊猫头举牌哭,
+熊猫头举横幅, 委屈猫) are `lang: zh`. Their images are blanks made by hand from widely
+shared 表情包 (words erased, a caption strip added), so they have no `url`.
+
 ```yaml
 defaults:
   style: {color: white, stroke: black, align: center, uppercase: true}

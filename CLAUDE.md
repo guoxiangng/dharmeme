@@ -102,6 +102,11 @@ proxy's root. After changing bot commands, run the `set_telegram_webhook` admin 
 6. Add seed captions as `pending`, merge, deploy, and send them to the owner with the
    `send_pending` admin event.
 
+A blank made by hand (words erased from a 表情包, a strip added for the caption) gets no
+`url`, so `fetch_templates.py --force` can never overwrite it with the original. Chinese
+表情包 sites such as fabiaoqing.com list images on img.soutula.com; swapping `/bmiddle/`
+for `/large/` gives the full size. Mark a format that only works in Chinese `lang: zh`.
+
 Leave out templates that are politically or racially loaded, depict violence, or have no
 room for text.
 
@@ -117,9 +122,8 @@ point-in-time restore into a temporary table.
   The owner stopped vetting around 2026-10-11, leaving about 300 memes `pending` (never
   served). Don't turn it back on, or change those pending memes, without the owner.
 
-- **Native Chinese formats** (熊猫头 reaction images) are wanted but unsourced. imgflip
-  doesn't carry them: its "panda" templates are ordinary pandas or people in costume. The
-  owner would need to supply blank images, or a site with direct image links.
+- **Native Chinese formats:** five added 2026-11-01 (four 熊猫头, one 委屈猫), with 20
+  pending seed memes sent to the owner. More could come from the same source.
 - **Slow first reply.** After a quiet spell the bot takes around 20 seconds, mostly loading
   two large Chinese fonts. One font for both scripts would roughly halve the package.
 - **The bot's `/random` can repeat**; the website deals a full pass before repeating.

@@ -9,7 +9,7 @@ import json
 import random
 from datetime import datetime, timezone
 
-from .prompt import MemeError, validate, voice
+from .prompt import MemeError, usable, validate, voice
 from .themes import as_topic
 
 SEEN_PER_TEMPLATE = 15  # existing captions shown to the writer, so it doesn't repeat them
@@ -118,7 +118,7 @@ def write_batch(llm, templates: list[dict], existing: list[dict], count: int,
     given; return the valid, new ones."""
     v = voice(lang)
     write, _, seen_label = TEXTS[lang]
-    templates = [t for t in templates if t["id"] not in v["skip"]]
+    templates = usable(templates, lang)
     chosen = list({t["id"]: t for t in pick_templates(templates, existing, count)}.values())
     theme_of = ({t["id"]: theme for t, theme in
                  zip(chosen, pick_themes(list(themes), existing, len(chosen)))}

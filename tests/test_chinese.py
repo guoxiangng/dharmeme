@@ -259,3 +259,11 @@ def test_the_owner_vets_chinese_memes_in_simplified():
     assert telegram.sent[0][2] == simplified_picture != bot.draw(pending, "zh")
     bot.handle(tap("ok:z2", user=99))
     assert [m["id"] for m in pool.approved("zh")] == ["z2"]
+
+
+def test_a_chinese_only_template_is_never_offered_to_english_memes():
+    from dharmeme.prompt import usable
+    native = {"id": "panda-head", "lang": "zh", "slots": []}
+    shared = {"id": "drake", "slots": []}
+    assert [t["id"] for t in usable([native, shared], "en")] == ["drake"]
+    assert [t["id"] for t in usable([native, shared], "zh-hans")] == ["panda-head", "drake"]

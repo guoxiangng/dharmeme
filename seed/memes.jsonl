@@ -127,3 +127,23 @@
 {"id": "wonka-0002", "template_id": "wonka", "slots": {"top": "Oh, you've stopped having an ego?", "bottom": "Please, go on about yourself"}, "status": "approved", "created": "2026-10-02"}
 {"id": "x-everywhere-0001", "template_id": "x-everywhere", "slots": {"bottom": "Impermanence everywhere", "top": "Impermanence"}, "status": "approved", "created": "2026-10-02"}
 {"id": "x-everywhere-0002", "template_id": "x-everywhere", "slots": {"top": "Thoughts", "bottom": "Thoughts everywhere"}, "status": "approved", "created": "2026-10-02"}
+{"id": "panda-walking-0001", "template_id": "panda-walking", "slots": {"passer_by": "發願天天早課的我路過"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}
+{"id": "panda-walking-0002", "template_id": "panda-walking", "slots": {"passer_by": "念佛念到睡著的我路過"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}
+{"id": "panda-walking-0003", "template_id": "panda-walking", "slots": {"passer_by": "吃素三天想鹹酥雞的路過"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}
+{"id": "panda-walking-0004", "template_id": "panda-walking", "slots": {"passer_by": "說好放下又撿回來的路過"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}
+{"id": "panda-sitting-0001", "template_id": "panda-sitting", "slots": {"excuse": "煩惱即菩提，我菩提很多"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}
+{"id": "panda-sitting-0002", "template_id": "panda-sitting", "slots": {"excuse": "隨緣啦，訊息明天再回"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}
+{"id": "panda-sitting-0003", "template_id": "panda-sitting", "slots": {"excuse": "我不是懶，我是在放下"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}
+{"id": "panda-sitting-0004", "template_id": "panda-sitting", "slots": {"excuse": "今天業障重，先不打坐"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}
+{"id": "panda-sign-crying-0001", "template_id": "panda-sign-crying", "slots": {"sign": "打坐可以坐椅子嗎"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}
+{"id": "panda-sign-crying-0002", "template_id": "panda-sign-crying", "slots": {"sign": "早課可以改成午課嗎"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}
+{"id": "panda-sign-crying-0003", "template_id": "panda-sign-crying", "slots": {"sign": "拜託別再問我為何吃素"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}
+{"id": "panda-sign-crying-0004", "template_id": "panda-sign-crying", "slots": {"sign": "我真的有在數念珠"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}
+{"id": "panda-banner-0001", "template_id": "panda-banner", "slots": {"banner": "恭喜你又放下了第五次"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}
+{"id": "panda-banner-0002", "template_id": "panda-banner", "slots": {"banner": "那你好隨緣哦"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}
+{"id": "panda-banner-0003", "template_id": "panda-banner", "slots": {"banner": "精進三天，好棒棒"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}
+{"id": "panda-banner-0004", "template_id": "panda-banner", "slots": {"banner": "功德簿記得好清楚哦"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}
+{"id": "crying-cat-0001", "template_id": "crying-cat", "slots": {"grievance": "說好歡喜布施，錢包先哭了"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}
+{"id": "crying-cat-0002", "template_id": "crying-cat", "slots": {"grievance": "腿麻到起不來，還說法喜充滿"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}
+{"id": "crying-cat-0003", "template_id": "crying-cat", "slots": {"grievance": "素食自助餐又被夾光了"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}
+{"id": "crying-cat-0004", "template_id": "crying-cat", "slots": {"grievance": "念佛念一半，忘了數到幾"}, "status": "pending", "created": "2026-11-01", "lang": "zh"}

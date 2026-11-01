@@ -793,3 +793,80 @@ templates:
       - {name: line_1, box: [0.02, 0.245, 0.96, 0.08], max_chars: 45}
       - {name: line_2, box: [0.02, 0.578, 0.96, 0.08], max_chars: 45}
       - {name: line_3, box: [0.02, 0.885, 0.96, 0.11], max_chars: 65}
+
+  # --- Native Chinese formats (lang: zh): offered only to Chinese memes. The images are
+  # blanks made by hand from widely shared 表情包 found on fabiaoqing.com (words erased,
+  # a caption strip added), so they have no `url`: a re-download must never replace them.
+  - id: panda-walking
+    name: 熊猫头路过 (Panda Head Passing By)
+    lang: zh
+    image: panda-walking.jpg
+    size: [786, 1000]
+    verified: true
+    format: >-
+      A panda-head figure (a cartoon panda with a smug human face) strolls past. The
+      caption above names who is passing by, in the classic form "<a kind of person>路過":
+      the speaker casually owning up to being a certain kind of person. Write the whole
+      caption, normally ending in 路過.
+    tags: [self-deprecation, confession, identity]
+    style: {color: black, stroke: none, uppercase: false}
+    slots:
+      - {name: passer_by, box: [0.04, 0.05, 0.92, 0.11], max_chars: 24}
+
+  - id: panda-sitting
+    name: 熊猫头坐地 (Smug Sitting Panda Head)
+    lang: zh
+    image: panda-sitting.jpg
+    size: [720, 920]
+    verified: true
+    format: >-
+      A crude line drawing of a panda-head figure sitting on the ground, grinning, totally
+      unbothered. The caption below is a calm, smug excuse or self-justification, the
+      kind that sounds wise and is really laziness or attachment.
+    tags: [excuse, smug, laziness]
+    style: {color: black, stroke: none, uppercase: false}
+    slots:
+      - {name: excuse, box: [0.04, 0.83, 0.92, 0.11], max_chars: 28}
+
+  - id: panda-sign-crying
+    name: 熊猫头举牌哭 (Crying Panda Head Holding a Sign)
+    lang: zh
+    image: panda-sign-crying.jpg
+    size: [800, 786]
+    verified: true
+    format: >-
+      A panda-head with tears streaming down its face holds a paper sign above its head.
+      The sign is a small, pitiful plea or complaint, as if begging to be let off.
+    tags: [plea, self-pity, complaint]
+    style: {color: black, stroke: none, uppercase: false}
+    slots:
+      - {name: sign, box: [0.07, 0.06, 0.88, 0.19], max_chars: 24}
+
+  - id: panda-banner
+    name: 熊猫头举横幅 (Smug Panda Head with a Red Banner)
+    lang: zh
+    image: panda-banner.jpg
+    size: [750, 739]
+    verified: true
+    format: >-
+      A smirking panda-head holds up a red banner like a fan's sign. The banner is mock
+      praise, sarcastic and teasing, in the spirit of 那你好棒棒哦 ("well aren't you
+      great"), aimed at a fellow practitioner's very ordinary failing.
+    tags: [sarcasm, mock-praise, teasing]
+    style: {color: black, stroke: none, uppercase: false}
+    slots:
+      - {name: banner, box: [0.13, 0.17, 0.80, 0.12], max_chars: 24}
+
+  - id: crying-cat
+    name: 委屈猫 (Crying Cat)
+    lang: zh
+    image: crying-cat.jpg
+    size: [716, 716]
+    verified: true
+    format: >-
+      A white cat with huge teary eyes, holding back tears. The caption is a small,
+      relatable grievance in the first person, said with deep self-pity.
+    tags: [grievance, self-pity, sadness]
+    style: {color: white, stroke: black, uppercase: false}
+    slots:
+      - {name: grievance, box: [0.04, 0.78, 0.92, 0.19], max_chars: 28}

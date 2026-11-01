@@ -64,6 +64,8 @@ def _validate(templates: list[dict]) -> None:
             len(size) == 2 and all(isinstance(n, int) and n > 0 for n in size)
         ):
             raise CatalogError(f"{where}: size must be [width, height] in pixels")
+        if t.get("lang") not in (None, "en", "zh"):
+            raise CatalogError(f"{where}: lang, if set, must be en or zh")
 
         names = set()
         for s in t["slots"]:

@@ -114,6 +114,15 @@ def voice(lang: str) -> dict:
                       "max": zh["max"], "topic": zh["topic"]}.items()}}
 
 
+def usable(templates: list[dict], lang: str) -> list[dict]:
+    """The templates a meme in `lang` may use: not skipped for that language, and either
+    for every language or marked (`lang` in the catalog) for this one, such as the native
+    Chinese formats, which only Chinese memes are offered."""
+    v, written_in = voice(lang), ("en" if lang == "en" else "zh")
+    return [t for t in templates
+            if t["id"] not in v["skip"] and t.get("lang", written_in) == written_in]
+
+
 class MemeError(ValueError):
     pass
 
@@ -161,7 +170,7 @@ def _parse(text: str):
 
 def write_meme(topic: str, llm, templates: list[dict], lang: str = "en") -> dict:
     v = voice(lang)
-    templates = [t for t in templates if t["id"] not in v["skip"]]
+    templates = usable(templates, lang)
     # Offered a random few, the model can't settle on one favourite template for every
     # topic, and the prompt is a fifth of the size.
     offered = random.sample(templates, OFFER) if len(templates) > OFFER else templates
