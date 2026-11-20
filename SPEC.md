@@ -127,8 +127,14 @@ have no buttons). `POST /vote {"id", "vote": "up"|"down"|"report"}`; no LLM call
 (`id`, button `label`, and a `brief` for the model), spanning the shared early teachings
 and Mahayana, Chan and Pure Land practice. The request names a theme id, and the model is
 given that theme's label and brief, so nothing anyone types reaches the model. This holds
-for the owner too, and for the bot as for the website: typed text in the bot only brings
-up the theme list.
+for the bot as for the website: typed text in the bot only brings up the theme list.
+
+**Owner-only situations (testing, since 2026-11-20).** In the owner's own chat,
+`/meme <situation>` (or `/chinesememe` / `/chinesememe_tw` followed by text) has the model
+turn a situation described in the owner's words into a meme. Unlike a theme, it is offered
+every template for that language, with an added instruction to keep the situation's point
+(`prompt.SCENARIO`). It skips the owner's personal limit but counts toward the day's total.
+Up to 300 characters. From anyone else, text after the command is ignored.
 
 **Festival themes are seasonal.** A theme with `lunar` dates (Chinese lunar calendar,
 `MM-DD`) is a festival: Vesak / 浴佛, Ullambana / 盂蘭盆, Bodhi Day / 臘八, Lunar New Year /

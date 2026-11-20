@@ -119,14 +119,29 @@ def test_tapping_a_theme_sends_a_fresh_meme_on_it():
     assert len(llm.calls) == 1
 
 
-def test_nobody_types_a_topic_not_even_the_owner():
+def test_only_the_owner_may_describe_a_situation_after_meme():
     llm = StubLLM(GOOD)
-    bot, telegram = make_bot(llm, owner=42)
-    bot.handle(update("/meme my inbox"))
-    bot.handle(update("my inbox"))
-    bot.handle(update("my inbox", chat_id=7))
-    assert llm.calls == []  # typed text only ever brings up the theme list
-    assert all(s[0] != "photo" for s in telegram.sent)
+    bot, telegram = make_bot(llm, owner=42, per_ip=0)  # no personal allowance at all
+    bot.handle(update("my inbox"))  # plain text: the theme list, even for the owner
+    bot.handle(update("/meme my inbox", chat_id=7))  # anyone else: the theme list
+    assert llm.calls == []
+    bot.handle(update("/meme opened the meme channel, found essays"))
+    assert llm.calls == ["Topic: opened the meme channel, found essays"]
+    assert telegram.sent[-1][0] == "photo"  # the owner's tests skip the personal limit
+
+
+def test_a_described_situation_is_offered_every_template():
+    from dharmeme.prompt import write_meme
+
+    class Capture:
+        def complete(self, system, user, max_tokens=None):
+            self.system = system
+            from dharmeme.llm.base import LLMResponse
+            return LLMResponse(text=json.dumps(GOOD))
+    llm = Capture()
+    write_meme("opened the meme channel, found essays", llm, TEMPLATES, scenario=True)
+    assert all(f"- {t['id']}:" in llm.system for t in TEMPLATES if t.get("lang", "en") == "en")
+    assert "situation the owner has described" in llm.system
 
 
 def test_limit_and_declined_send_a_random_meme_with_the_message():

@@ -30,6 +30,7 @@ HELP = (
     "/chineserandom_tw · /chinesememe_tw - 繁體版"
 )
 PICK = "Pick a theme:"
+TOPIC_MAX = 300  # an owner's described situation, in characters
 RANDOM_ZH = "random"  # the "any" button in a Chinese list: a meme from the Chinese pool
 # Callback data is a 3-character prefix followed by a meme id or a theme id.
 APPROVE, REJECT = "ok:", "no:"  # the owner's buttons
@@ -273,6 +274,13 @@ class Bot:
             self.telegram.send_message(chat_id, f"This chat's id is {chat_id}")
         elif command == "/random":
             self.send_random(chat_id)
+        elif (command == "/meme" or CHINESE_COMMANDS.get(command, ("",))[0] == "themes")                 and rest.strip() and chat_id == self.owner_chat_id:
+            # Testing, owner only: "/meme <situation>" (or /chinesememe, _tw) has the model
+            # turn a described situation into a meme, choosing from every template. Anyone
+            # else typing after the command still gets the theme list.
+            lang = CHINESE_COMMANDS[command][1] if command in CHINESE_COMMANDS else "en"
+            self.send_fresh(chat_id, rest.strip()[:TOPIC_MAX], f"tg-{chat_id}", lang,
+                            scenario=True)
         elif command in CHINESE_COMMANDS:
             action, lang = CHINESE_COMMANDS[command]
             if action == "random":
@@ -314,16 +322,18 @@ class Bot:
         self.send(chat_id, random.choices(pool, [weight(m) for m in pool])[0], lang=lang)
 
     def send_fresh(self, chat_id: int, topic: str, voter: str, lang: str = "en",
-                   who: str = "") -> None:
+                   who: str = "", scenario: bool = False) -> None:
         """Have the model write a meme on `topic` and send it, within `voter`'s limit.
 
         Any fallback (limit reached, declined, error) is a short message with a meme from
         the pool of that language, or the message alone if that pool is empty.
         """
         written_in = pool_lang(lang)
-        refused = self.limits.check(voter, who)
+        # The owner testing scenarios has no personal limit; the day's total still applies.
+        refused = self.limits.check(voter, who, personal=not scenario)
         result = ({"fallback": refused} if refused else
-                  write_meme(topic, self.get_llm(), list(self.templates.values()), written_in))
+                  write_meme(topic, self.get_llm(), list(self.templates.values()), written_in,
+                             scenario))
         if "fallback" not in result:
             if self.feedback is not None:
                 result = {**result, "fresh": True,

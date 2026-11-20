@@ -14,9 +14,11 @@ These came out of specific decisions. Don't relitigate them; ask before going ag
 - **Don't touch the pool while the owner is vetting.** No batch jobs, no status changes,
   no deletes. A job that re-read "what is approved" mid-vetting once undid their approvals
   and flooded their chat with duplicates. Agree whose turn it is, then act.
-- **Nobody types a topic.** Everyone, the owner included, picks a theme from a list, on
-  the website and in the bot alike. No open prompt box, on any surface; the two surfaces
-  are kept identical on purpose.
+- **The public never types a topic.** Visitors pick a theme from a list, on the website
+  and in the bot alike. The one exception, since 2026-11-20, is the owner testing
+  described situations in their own chat (`/meme <situation>`, `/chinesememe[_tw]
+  <situation>`); it may become public only when the owner decides. No open prompt box
+  for anyone else, on any surface.
 - **No approval or admin surface that others can reach.** The review page is local-only;
   owner actions are gated on the owner's chat id.
 - **No AI-generated images.** Only existing, well-known meme templates.

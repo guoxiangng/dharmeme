@@ -794,6 +794,22 @@ templates:
       - {name: line_2, box: [0.02, 0.578, 0.96, 0.08], max_chars: 45}
       - {name: line_3, box: [0.02, 0.885, 0.96, 0.11], max_chars: 65}
 
+  - id: disappointed-black-guy
+    name: Disappointed Black Guy
+    image: disappointed-black-guy.jpg
+    url: https://i.imgflip.com/u0pf0.jpg
+    size: [1172, 756]
+    verified: true
+    format: >-
+      Two panels, the same man on the right. Top: he grins at something that looks
+      promising. Bottom: his face falls at what it actually turns out to be. The joke is
+      expectation against reality.
+    tags: [expectation, reality, disappointment, contrast]
+    style: {color: black, stroke: none, uppercase: false}
+    slots:
+      - {name: expectation, box: [0.03, 0.06, 0.56, 0.38], max_chars: 70}
+      - {name: reality, box: [0.03, 0.56, 0.56, 0.38], max_chars: 70}
+
   # --- Native Chinese formats (lang: zh): offered only to Chinese memes. The images are
   # blanks made by hand from widely shared 表情包 found on fabiaoqing.com (words erased,
   # a caption strip added), so they have no `url`: a re-download must never replace them.

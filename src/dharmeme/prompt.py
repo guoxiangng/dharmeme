@@ -168,13 +168,34 @@ def _parse(text: str):
         raise MemeError(f"invalid JSON: {exc}") from exc
 
 
-def write_meme(topic: str, llm, templates: list[dict], lang: str = "en") -> dict:
+# Added to the system prompt when the owner describes a situation in their own words.
+SCENARIO = {
+    "en": """This time the topic is not a theme: it is a situation the owner has described in their
+own words, often a moment from Buddhist community life. Turn that exact situation into
+the meme. Keep its point and its punchline; you may tighten the wording. Choose the
+template by the shape of the joke (a contrast, a choice, an expectation against
+reality), from all the templates listed.""",
+    "zh": """這次的主題不是預設主題，而是站主用自己的話描述的一個情境，常是佛教圈的生活瞬間。
+請把這個情境本身做成梗圖，保留它的重點和笑點，文字可以精簡。依笑點的結構
+（對比、選擇、期待與現實）從列出的所有模板中挑選。""",
+}
+
+
+def write_meme(topic: str, llm, templates: list[dict], lang: str = "en",
+               scenario: bool = False) -> dict:
     v = voice(lang)
     templates = usable(templates, lang)
-    # Offered a random few, the model can't settle on one favourite template for every
-    # topic, and the prompt is a fifth of the size.
-    offered = random.sample(templates, OFFER) if len(templates) > OFFER else templates
+    # A theme is broad, and offered every template the model settles on one favourite,
+    # so it sees a random few. A described situation dictates its own format, so it sees
+    # them all.
+    if scenario:
+        offered = templates
+    else:
+        offered = random.sample(templates, OFFER) if len(templates) > OFFER else templates
     system = system_prompt(offered, lang)
+    if scenario:
+        extra = SCENARIO["en" if lang == "en" else "zh"]
+        system += "\n\n" + (to_simplified(extra) if lang == HANS else extra)
     label = v["topic"]
     user = f"{label}: {topic}"
     for _ in range(ATTEMPTS):

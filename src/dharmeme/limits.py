@@ -24,7 +24,7 @@ class Limits:
         expires = int((now + timedelta(days=KEEP_DAYS)).timestamp())
         return self.store.increment(PK, f"votes#{voter}#{now:%Y-%m-%d}", per_day, expires)
 
-    def check(self, ip: str, who: str = "") -> str | None:
+    def check(self, ip: str, who: str = "", personal: bool = True) -> str | None:
         """Count one request against both limits. None if it may go ahead; otherwise
         "limit" (this visitor's own) or "cap" (everyone's, for the day).
 
@@ -36,7 +36,7 @@ class Limits:
         now = self.now().astimezone(self.tz)
         day = now.strftime("%Y-%m-%d")
         expires = int((now + timedelta(days=KEEP_DAYS)).timestamp())
-        if not self.store.increment(PK, f"ip#{ip}#{day}", self.per_ip, expires):
+        if personal and not self.store.increment(PK, f"ip#{ip}#{day}", self.per_ip, expires):
             reason, key = "limit", f"alerted#{ip}#{day}"
         elif not self.store.increment(PK, f"global#{day}", self.per_day, expires):
             reason, key = "cap", f"alerted#global#{day}"
